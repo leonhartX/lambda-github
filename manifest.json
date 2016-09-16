@@ -12,6 +12,9 @@
   "background": {
     "scripts": ["background/background.js"]
   },
+  "options_ui": {
+    "page": "options/options.html"
+  },
   "content_scripts": [
     {
       "matches":["https://*.console.aws.amazon.com/lambda/*"],
@@ -28,11 +31,13 @@
   },
   "web_accessible_resources": [
     "lib/jquery.min.js",
-    "lambda-hub.js"
+    "lambda-hub.js",
+    "options/options.html",
+    "content/buttons.html",
+    "content/model.html"
   ],
   "permissions": [
-    "https://ap-northeast-1.console.aws.amazon.com/",
-    // "https://*.aws.amazon.com/",
+    "https://*.console.aws.amazon.com/",
     "https://ghe.rjbdev.jp/",
     "cookies",
     "webRequest",

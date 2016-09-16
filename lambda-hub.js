@@ -1,166 +1,172 @@
-let functionList = {};
-const baseUrl = "https://ghe.rjbdev.jp/api/v3/repos/k-kyo/lambdaTest";
-const accessToken = "8ce96018903bcc20f01de9693b02cbeaa9715d08";
+"use strict";
+let context = {};
+let baseUrl, accessToken, user;
 
 chrome.runtime.onMessage.addListener(() => {
-  const div = $('.awsmob-button-group');
-  if($('.github').length === 0 && div.children().length > 2) {
-    initButton();
+  if($('.github').length === 0) {
+    initContext()
+    .then(initLambdaList)
+    .then(getGithubRepos)
+    .then(initPageContent)
+    .catch((err) => {
+      if (err.message === "need login") {
+        initLoginContent();
+      }
+    });
   }
 });
 
 $(() => {
+  //bind ui event handler
   $.ajaxSetup({ cache: false });
-  getRequestParameter(true)
-  .then((param) => {
-    return $.ajax({
-        url: 'https://' + param.endpoint + '/lambda/services/ajax?operation=listFunctions',
-        headers: {
-          "X-Csrf-Token" : param.csrf
-        },
-        method: 'POST',
-        crossDomain: true,
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify({operation: "listFunctions"})
-      });
+  $(document).on('click', '#github-bind-repo', (event) => {
+    $('.github-repo-dropdown').show();
+  });
+  $(document).on('click', '#github-bind-branch', (event) => {
+    $('.github-branch-dropdown').show();
+  });
+  $(document).on('click', '#github-new-repo', showCreateRepo);
+  $(document).on('input propertychange', '#new-repo-name', (event) => {
+    changeButtonState('repo', event.target.value);
   })
-  .then((lambdas) => {
-    lambdas.forEach((lambda) => {
-      functionList[lambda.name] = lambda
-    })
-    console.log(functionList);
+  $(document).on('click', '.github-repo-model-dismiss', (event) => {
+    changeModelState('repo', false);
   })
 
-  $(document).on('click', '.github-button', (event) => {
-    $('.github-dropdown').show();
-  });
+  $(document).on('click', '#github-new-branch', showCreateBranch);
+  $(document).on('input propertychange', '#new-branch-name', (event) => {
+    changeButtonState('branch', event.target.value);
+  })
+  $(document).on('click', '.github-branch-model-dismiss', (event) => {
+    changeModelState('branch', false);
+  })
 
   $(document).on('click', '#github-pull', gitPull);
   $(document).on('click', '#github-push', gitPush);
-  $(document).on('click', '#github-config', (event) => {
-    getRequestParameter()
-    .then((param) =>{
-      let json = {
-        functionName: param.functionName,
-        qualifier: param.qualifier,
-        operation: "getFunctionCode"
-      };
-      return $.ajax({
-        url: 'https://' + param.endpoint + '/lambda/services/ajax?operation=getFunctionCode',
-        headers: {
-          "X-Csrf-Token" : param.csrf
-        },
-        method: 'POST',
-        crossDomain: true,
-        dataType: 'json',
-        contentType: 'application/json',
-        data: JSON.stringify(json)
-      });
-    })
-    .then((data) => {
-      console.log(data.code);
-      $('.github-dropdown').hide();
-    })
-    .catch((err) => {
-      console.log(err);
-      $('.github-dropdown').hide();
+  $(document).on('click', '#github-login', (event) => {
+    if (chrome.runtime.openOptionsPage) {
+      // New way to open options pages, if supported (Chrome 42+).
+      chrome.runtime.openOptionsPage();
+    } else {
+      // Reasonable fallback.
+      window.open(chrome.runtime.getURL('options/options.html'));
+    }
+  });
+  $(document).on('click', '.github-repo', (event) => {
+    if (context.repo && event.target.text === context.repo.name) return;
+    //update context.repo with name and fullName
+    const name = event.target.text;
+    const fullName = event.target.attributes.data.value;
+    const repo = {
+      name: name,
+      fullName : fullName
+    }
+    context.repo = repo;
+    Object.assign(context.bindRepo, { [context.functionName] : repo });
+    if (context.bindBranch[context.functionName]) {
+      delete context.bindBranch[context.functionName];
+    }
+    chrome.storage.sync.set({ bindRepo: context.bindRepo }, () => {
+      $('#github-bind-repo').text(`Repo: ${name}`);
+      $('.github-repo-dropdown').hide();
+      updateBranch(name);
     });
-  })
+  });
+
+  $(document).on('click', '.github-branch', (event) => {
+    if (context.branch && event.target.text === context.branch) return;
+    //update context.branch and save to storage
+    const branch = event.target.text;
+    context.branch = branch;
+    Object.assign(context.bindBranch, { [context.functionName] : branch });
+    chrome.storage.sync.set({ bindBranch: context.bindBranch }, () => {
+      $('#github-bind-branch').text(`Branch: ${branch}`);
+      $('.github-branch-dropdown').hide();
+    });
+  });
 
   $(document).mouseup((event) => {
-      let container = $('.github-dropdown');
-      if (!container.is(event.target) 
-        && !$('.github-button').is(event.target)
-        && container.has(event.target).length === 0)
-      {
-          container.hide();
-      }
+    //hide repo list
+    let repo_container = $('.github-repo-dropdown');
+    if (!repo_container.is(event.target) 
+      && !$('#github-bind-repo').is(event.target)
+      && repo_container.has(event.target).length === 0) {
+      repo_container.hide();
+    }
+    //hide branch list
+    let branch = $('.github-branch-dropdown');
+    if (!branch.is(event.target) 
+      && !$('#github-bind-branch').is(event.target)
+      && branch.has(event.target).length === 0) {
+      branch.hide();
+    }
   });
 });
 
 
 function gitPull() {
-  Promise.all([
-    getGithubCode(),
-    getRequestParameter()
-  ])
-  .then((param) => {
-    const functionName = param[1].functionName;
+  const path = context.current.runtime.indexOf("nodejs") >= 0 ? "index.js" : "index.py";
+  $.getJSON(
+    `${baseUrl}/repos/${context.repo.fullName}/contents/${path}?ref=${context.branch}`,
+    { access_token: accessToken }
+  )
+  .then((data) => {
+    return $.get(data.download_url);
+  })
+  .then((code) => {
     const payload = {
       operation: "updateFunctionCode",
       codeSource: "inline",
-      functionName: functionName,
-      handler: functionList[functionName].handler,
-      runtime: functionList[functionName].runtime,
-      inline: param[0]
+      functionName: context.functionName,
+      handler: context.current.handler,
+      runtime: context.current.runtime,
+      inline: code
     };
     return $.ajax({
-      url: 'https://' + param[1].endpoint + '/lambda/services/ajax?operation=updateFunctionCode',
+      url: 'https://' + context.endpoint + '/lambda/services/ajax?operation=updateFunctionCode',
       headers: {
-        "X-Csrf-Token" : param[1].csrf
+        "X-Csrf-Token" : context.csrf
       },
       method: 'POST',
       crossDomain: true,
-      dataType: 'json',
       contentType: 'application/json',
       data: JSON.stringify(payload)
     });
   })
-  .then(console.log)
-  .catch(console.log);
+  .then(() => {
+    console.log("pull ok");
+    location.reload();
+  })
+  .fail((err) => {
+    console.log(err);
+    showAlert("Failed to pull");
+  });
 }
 
 function gitPush() {
-  getRequestParameter()
-  .then((param) =>{
-    const payload = {
-      functionName: param.functionName,
-      qualifier: param.qualifier,
-      operation: "getFunctionCode"
-    };
-    return $.ajax({
-      url: 'https://' + param.endpoint + '/lambda/services/ajax?operation=getFunctionCode',
-      headers: {
-        "X-Csrf-Token" : param.csrf
-      },
-      method: 'POST',
-      crossDomain: true,
-      dataType: 'json',
-      contentType: 'application/json',
-      data: JSON.stringify(payload)
-    });
+  const payload = {
+    functionName: context.functionName,
+    qualifier: context.qualifier,
+    operation: "getFunctionCode"
+  };
+  $.ajax({
+    url: 'https://' + context.endpoint + '/lambda/services/ajax?operation=getFunctionCode',
+    headers: {
+      "X-Csrf-Token" : context.csrf
+    },
+    method: 'POST',
+    crossDomain: true,
+    dataType: 'json',
+    contentType: 'application/json',
+    data: JSON.stringify(payload)
   })
   .then((data) => {
-    console.log(data.code);
     const payload = {
       content: data.code,
       encoding: "utf-8"
     };
     return $.ajax({
-      url: `${baseUrl}/git/blobs`,
-      headers: {
-        "Authorization": `token ${accessToken}`
-      },
-      method: 'POST',
-      crossDomain: true,
-      dataType: 'json',
-      contentType: 'application/json',
-      data: JSON.stringify(payload)
-    });
-  })
-  .then((response) => {
-    console.log(response);
-    const payload = {
-      tree : [{
-        path: "index.js",
-        mode: "100644",
-        type: "blob",
-        sha: response.sha
-      }]
-    };
-    return $.ajax({
-      url: `${baseUrl}/git/trees`,
+      url: `${baseUrl}/repos/${context.repo.fullName}/git/blobs`,
       headers: {
         "Authorization": `token ${accessToken}`
       },
@@ -173,15 +179,44 @@ function gitPush() {
   })
   .then((response) => {
     return $.getJSON(
-      'https://ghe.rjbdev.jp/api/v3/repos/k-kyo/lambdaTest/branches/master',
+      `${baseUrl}/repos/${context.repo.fullName}/branches/${context.branch}`,
       { access_token: accessToken }
     )
     .then((branch) => {
-      return Object.assign(response, { parent: branch.commit.sha})
+      return Object.assign(response, 
+      {
+        base_tree: branch.commit.commit.tree.sha,
+        parent: branch.commit.sha
+      });
     });
   })
   .then((response) => {
-    console.log(response);
+    const path = context.current.runtime.indexOf("nodejs") >= 0 ? "index.js" : "index.py";
+    const payload = {
+      base_tree: response.base_tree,
+      tree : [{
+        path: path,
+        mode: "100644",
+        type: "blob",
+        sha: response.sha
+      }]
+    };
+    return $.ajax({
+      url: `${baseUrl}/repos/${context.repo.fullName}/git/trees`,
+      headers: {
+        "Authorization": `token ${accessToken}`
+      },
+      method: 'POST',
+      crossDomain: true,
+      dataType: 'json',
+      contentType: 'application/json',
+      data: JSON.stringify(payload)
+    })
+    .then((treeResponse) => {
+      return Object.assign(treeResponse, { parent: response.parent })
+    });
+  })
+  .then((response) => {
     const payload = {
       message: "commit from lambda",
       tree: response.sha,
@@ -190,7 +225,7 @@ function gitPush() {
       ]
     };
     return $.ajax({
-      url: `${baseUrl}/git/commits`,
+      url: `${baseUrl}/repos/${context.repo.fullName}/git/commits`,
       headers: {
         "Authorization": `token ${accessToken}`
       },
@@ -202,13 +237,12 @@ function gitPush() {
     });
   })
   .then((response) => {
-    console.log(response);
      const payload = {
       force: true,
       sha: response.sha
     };
     return $.ajax({
-      url: `${baseUrl}/git/refs/heads/master`,
+      url: `${baseUrl}/repos/${context.repo.fullName}/git/refs/heads/${context.branch}`,
       headers: {
         "Authorization": `token ${accessToken}`
       },
@@ -219,70 +253,191 @@ function gitPush() {
       data: JSON.stringify(payload)
     });
   })
-  .then((response) => {
-    console.log(response);
+  .then(() => {
+    console.log("push ok");
   })
+  .fail((err) => {
+    console.log(err);
+    showAlert("Failed to push");
+  });
 }
 
-
-function getGithubCode() {
-  return $.getJSON(
-    'https://ghe.rjbdev.jp/api/v3/repos/k-kyo/lambdaTest/contents/index.js?ref=master',
-    { access_token: accessToken }
-  )
-  .then((data) =>  {
-    return $.get(data.download_url);
-  })
+function showCreateRepo() {
+  $('.github-repo-dropdown').hide();
+  changeModelState('repo', true);
 }
 
-function getRequestParameter(simple) {
-  let param;
-  if (simple) {
-    const match = window.location.href.match(/https:\/\/(.*?)\//);
-    if (!match) return null;
-    param = {
-      endpoint : match[1]
-    };    
-  } else {
-    const match = window.location.href.match(/https:\/\/(.*?)\/.*functions\/(\w*)(\?|\/)((.*)\?)?/);
-    if (!match) return null;
-    param = {
-      endpoint : match[1],
-      functionName : match[2],
-      qualifier : match[5]? match[5] : "$LATEST"
-    };
-  }
+function showCreateBranch() {
+  $('.github-branch-dropdown').hide();
+  changeModelState('branch', true);
+}
+
+function initContext() {
+  context = {};
+  const match = window.location.href.match(/https:\/\/(.*?)\/.*functions\/(\w*)(\?|\/)((.*)\?)?/);
+  if (!match) return null;
+  context.endpoint = match[1];
+  context.functionName = match[2];
+  context.qualifier = match[5]? match[5] : "$LATEST";
 
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get("csrf", (item) => {
-      if (item.csrf && item.csrf !== ""){
-        param.csrf = item.csrf;
-        resolve(param);
+    chrome.storage.sync.get(["csrf","token","user", "baseUrl", "bindRepo", "bindBranch"], (item) => {
+      if (!item.token) {
+        reject(new Error("need login"));
       }
-      else throw new Error("can not get csrf token");
+      accessToken = item.token;
+      user = item.user;
+      baseUrl = item.baseUrl;
+      context.bindRepo = item.bindRepo || {};
+      context.bindBranch = item.bindBranch || {};
+      if (item.csrf && item.csrf !== ""){
+        context.csrf = item.csrf;
+        resolve();
+      }
+      else reject(new Error("can not get csrf token"));
     });
   })
 }
 
-function initButton() {
+function initLambdaList() {
+  return $.ajax({
+    url: 'https://' + context.endpoint + '/lambda/services/ajax?operation=listFunctions',
+    headers: {
+      "X-Csrf-Token" : context.csrf
+    },
+    method: 'POST',
+    crossDomain: true,
+    dataType: 'json',
+    contentType: 'application/json',
+    data: JSON.stringify({operation: "listFunctions"})
+  })
+  .then((lambdas) => {
+    context.functions = [];
+    return lambdas.forEach((lambda) => {
+      context.functions[lambda.name] = lambda
+      if (lambda.name === context.functionName) {
+        context.current = lambda;
+      }
+    })
+  });
+}
+
+function getGithubRepos() {
+  return $.ajax({
+    url: `${baseUrl}/user/repos`,
+    headers: {
+      "Authorization": `token ${accessToken}`
+    },
+    method: 'GET',
+    crossDomain: true,
+    dataType: 'json',
+    contentType: 'application/json'
+  })
+  .then((response) => {
+    const repos = response.map((repo) => {
+      return { name : repo.name, fullName : repo.full_name }
+    });
+    //if current bind still existed, use it
+    const repo = context.bindRepo[context.functionName];
+    if (repo && $.inArray(repo.name, repos.map(repo => repo.name)) >= 0 ) {
+      context.repo = repo;
+    }
+    return repos;
+  })
+}
+
+function initPageContent(repos) {
   const div = $('.awsmob-button-group');
-  if (div.length === 0) return;
-  const button = 
-    '<span class="github">\
-      <div class="awsmob-dropdown">\
-        <span>\
-          <awsui-button>\
-            <button class="github-button awsui-button awsui-button-size-normal awsui-button-variant-normal awsui-hover-child-icons" type="submit">Github\
-              <span class="github-caret awsui-button-icon awsui-button-icon-right awsui-icon caret-down"></span>\
-            </button>\
-          </awsui-button>\
-        </span>\
-        <ul class="awsmob-dropdown-menu github-dropdown" style="display: none">\
-          <li><a id="github-config"><span>Configure Github</span></a></li>\
-          <li><a id="github-pull"><span>Pull</span></a></li>\
-          <li><a id="github-push"><span>Push</span></a></li>\
-        </ul>\
-      </div>\
+  if($('.github').length !== 0 || div.length === 0 || div.children().length <= 2) {
+    return;
+  }
+
+  $.get(chrome.runtime.getURL('content/buttons.html'))
+  .then((content) => {
+    div.children().last().after(content);
+    $('#github-repos').append('<li><a id="github-new-repo">Create new repo</a></li>');
+    repos.forEach((repo) => {
+      let liContent = `<li><a class="github-repo" data=${repo.fullName}>${repo.name}</a></li>`
+      $('#github-repos').append(liContent);
+    });
+    if (context.repo) {
+      $('#github-bind-repo').text(`Repo: ${context.repo.name}`);
+      updateBranch(context.repo.name);
+    }
+  });
+
+  $.get(chrome.runtime.getURL('content/model.html'))
+  .then((content) => {
+    $('#main').siblings().last().after(content);
+  });
+}
+
+function initLoginContent() {
+  const div = $('.awsmob-button-group');
+  if($('.github').length !== 0 || div.length === 0 || div.children().length <= 2) {
+    return;
+  }
+  const htmlContent = '\
+    <span class="github">\
+      <awsui-button>\
+        <button id="github-login" class="awsui-button awsui-button-size-normal awsui-button-variant-normal awsui-hover-child-icons" type="submit">Login to Github\
+        </button>\
+      </awsui-button>\
     </span>';
-  div.children().last().after(button);
+  div.children().last().after(htmlContent);
+}
+
+function updateBranch(repo) {
+  $.getJSON(
+    `${baseUrl}/repos/${context.repo.fullName}/branches`,
+    { access_token: accessToken }
+  )
+  .done((branches) => {
+    $('#github-branches').empty().append('<li><a id="github-new-branch">Create new branch</a></li>');
+    branches.forEach((branch) => {
+      let liContent = `<li><a class="github-branch" data=${branch.name}>${branch.name}</a></li>`
+      $('#github-branches').append(liContent);
+    });
+    let branch = context.bindBranch[context.functionName];
+    if (!branch) {
+      if (branches.length === 0) branch = "";
+      else if ($.inArray(branch, branches.map(branch => branch.name)) < 0) {
+        branch = ($.inArray("master", branches.map(branch => branch.name)) >= 0) ? "master" : branches[0].name;
+      }
+    }
+    $('#github-bind-branch').text(`Branch: ${branch}`);
+    //update context and storage
+    context.branch = branch;
+    Object.assign(context.bindBranch, { [context.functionName] : branch });
+    chrome.storage.sync.set({ bindBranch: context.bindBranch });
+  })
+  .fail(console.log);
+}
+
+function changeModelState(type, toShow) {
+  const index = toShow ? 0 : -1;
+  const fromClass = toShow ? 'hidden' : 'fadeIn';
+  const trasnferClass = toShow ? 'fadeIn' : 'fadeOut';
+  const toClass = toShow ? 'showing' : 'hidden';
+  $(`.github-${type}-model`).removeClass(`awsui-modal-__state-${fromClass}`).addClass(`awsui-modal-__state-${trasnferClass}`);
+  setTimeout(() => {
+    $(`.github-${type}-model`).removeClass(`awsui-modal-__state-${trasnferClass}`).addClass(`awsui-modal-__state-${toClass}`);
+  },
+  1000
+  );
+  $(`.github-${type}-modal-dialog`).attr('tabindex', index);
+}
+
+function changeButtonState(type, value) {
+  if (!value || value === "") {
+    $(`#github-create-${type}`).prop("disabled", true).addClass('awsui-button-disabled');
+  } else {
+    $(`#github-create-${type}`).prop("disabled", false).removeClass('awsui-button-disabled');
+  }
+}
+
+function showAlert(msg) {
+  setTimeout(() => {
+    alert(msg);
+  }, 0);
 }

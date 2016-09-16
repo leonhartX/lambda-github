@@ -19,7 +19,9 @@ chrome.webRequest.onCompleted.addListener((details) => {
   });
 },
 { 
-  urls: [ "https://*.console.aws.amazon.com/lambda/services/ajax?operation=*" ],
+  urls: [ 
+    "https://*.console.aws.amazon.com/lambda/services/ajax?operation=getFunctionCode"
+  ],
   types: ["xmlhttprequest"]
 },
 [

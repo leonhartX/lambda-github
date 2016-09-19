@@ -111,13 +111,24 @@
           <button class="github-diff-model-dismiss awsui-modal-dismiss-control awsui-button-as-link awsui-icon times"></button>
           Diff between lambda and github
         </div>
-        <div class="awsui-modal-body github-diff">
+        <div class="awsui-modal-body">
+          <div class="github-diff">
+          </div>
+          <div class="awsui-control-group-inside">
+            <label class="awsui-control-group-label" for="awsui-textfield-1">Commit Comment</label>
+            <div class="awsui-control-group-controls">
+              <div class="awsui-control-group-control" region-container="control">
+                <span><awsui-textfield><input type="text" id="commit-comment" class="awsui-textfield awsui-textfield-type-text"></awsui-textfield></span>
+              </div>
+            </div>
+          </div>
         </div>
+
         <div class="awsui-modal-footer">
           <div region-container="footer">
             <span>
               <awsui-button class="awsui-util-f-r">
-                <button id="github-create-diff" class="awsui-button awsui-button-disabled awsui-button-size-normal awsui-button-variant-primary awsui-hover-child-icons" type="submit" disabled="">Create</button>
+                <button id="github-diff-handler" class="awsui-button awsui-button-size-normal awsui-button-variant-primary awsui-hover-child-icons" type="submit"></button>
               </awsui-button>
               <awsui-button class="awsui-util-f-r">
                 <button class="github-diff-model-dismiss awsui-button awsui-button-size-normal awsui-button-variant-link awsui-hover-child-icons" type="submit">Cancel</button>

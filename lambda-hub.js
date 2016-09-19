@@ -1,6 +1,9 @@
 "use strict";
 let context = {};
 let baseUrl, accessToken, user;
+const LEVEL_ERROR = "error";
+const LEVEL_WARN = "warning";
+const LEVEL_INFO = "info";
 
 chrome.runtime.onMessage.addListener(() => {
   if($('.github').length === 0) {
@@ -19,6 +22,7 @@ chrome.runtime.onMessage.addListener(() => {
           break;
         default:
           console.log(err);
+          break;
       }
     });
   }
@@ -27,52 +31,66 @@ chrome.runtime.onMessage.addListener(() => {
 $(() => {
   //bind ui event handler
   $.ajaxSetup({ cache: false });
-  $(document).on('click', '#github-bind-repo', (event) => {
-    $('.github-repo-dropdown').show();
-  });
-  $(document).on('click', '#github-bind-branch', (event) => {
-    $('.github-branch-dropdown').show();
-  });
-  $(document).on('click', '#github-new-repo', showCreateRepo);
-  $(document).on('input propertychange', '#new-repo-name', (event) => {
-    changeButtonState('repo', event.target.value);
+  ['repo', 'branch'].forEach((type) => {
+    $(document).on('click', `#github-bind-${type}`, (event) => {
+      $(`.github-${type}-dropdown`).show();
+    });
+    $(document).on('click', `#github-new-${type}`, showCreateRepo);
+    $(document).on('input propertychange', `#new-${type}-name`, (event) => {
+      changeButtonState(type, event.target.value);
+    });
+    $(document).on('click', `.github-${type}-model-dismiss`, (event) => {
+      changeModelState(type, false);
+    });
   })
-  $(document).on('click', '.github-repo-model-dismiss', (event) => {
-    changeModelState('repo', false);
-  })
+  // $(document).on('click', '#github-bind-repo', (event) => {
+  //   $('.github-repo-dropdown').show();
+  // });
+  // $(document).on('click', '#github-bind-branch', (event) => {
+  //   $('.github-branch-dropdown').show();
+  // });
+  // $(document).on('click', '#github-new-repo', showCreateRepo);
+  // $(document).on('input propertychange', '#new-repo-name', (event) => {
+  //   changeButtonState('repo', event.target.value);
+  // })
+  // $(document).on('click', '.github-repo-model-dismiss', (event) => {
+  //   changeModelState('repo', false);
+  // })
   $(document).on('click', '#github-create-repo', (event) => {
     changeModelState('repo', false);
     githubCreateRepo();
   });
 
-  $(document).on('click', '#github-new-branch', showCreateBranch);
-  $(document).on('input propertychange', '#new-branch-name', (event) => {
-    changeButtonState('branch', event.target.value);
-  })
-  $(document).on('click', '.github-branch-model-dismiss', (event) => {
-    changeModelState('branch', false);
-  })
-  $(document).on('click', '#github-create-branch', (event) => {
+  // $(document).on('click', '#github-new-branch', showCreateBranch);
+  // $(document).on('input propertychange', '#new-branch-name', (event) => {
+  //   changeButtonState('branch', event.target.value);
+  // })
+  // $(document).on('click', '.github-branch-model-dismiss', () => {
+  //   changeModelState('branch', false);
+  // })
+  $(document).on('click', '#github-create-branch', () => {
     changeModelState('branch', false);
     githubCreateBranch();
   });
 
-  $(document).on('click', '.github-diff-model-dismiss', (event) => {
+  $(document).on('click', '.github-diff-model-dismiss', () => {
     changeModelState('diff', false);
   })
 
-  $(document).on('click', '.github-alert-dismiss', (event) => {
+  $(document).on('click', '.github-alert-dismiss', () => {
     $(event.target).parents('.github-alert').remove();
   });
 
-  $(document).on('click', '#github-pull', githubPull);
-  $(document).on('click', '#github-push', githubPush);
+  $(document).on('click', '#github-pull', () => {
+    showDiff('Pull', githubPull);
+  });
+  $(document).on('click', '#github-push', () => {
+    showDiff('Push', githubPush);
+  });
   $(document).on('click', '#github-login', (event) => {
     if (chrome.runtime.openOptionsPage) {
-      // New way to open options pages, if supported (Chrome 42+).
       chrome.runtime.openOptionsPage();
     } else {
-      // Reasonable fallback.
       window.open(chrome.runtime.getURL('options/options.html'));
     }
   });
@@ -127,14 +145,20 @@ $(() => {
   });
 });
 
-function checkDiff() {
+function showDiff(type, handler) {
   return Promise.all([
-    $.getJSON(
-      `${baseUrl}/repos/${context.repo.fullName}/contents/${context.file}?ref=${context.branch}`,
-      { access_token: accessToken }
-    )
-    .then((data) => {
-      return $.get(data.download_url);
+    new Promise((resolve, reject) => {
+      $.getJSON(
+        `${baseUrl}/repos/${context.repo.fullName}/contents/${context.file}?ref=${context.branch}`,
+        { access_token: accessToken }
+      )
+      .then((data) => {
+        resolve($.get(data.download_url))
+      })
+      .fail((err) => {
+        if (err.status === 404) resolve("");
+        else reject(err);
+      })
     }),
     $.ajax({
       url: 'https://' + context.endpoint + '/lambda/services/ajax?operation=getFunctionCode',
@@ -153,57 +177,70 @@ function checkDiff() {
     })
   ])
   .then((data) => {
-    const diff = JsDiff.createTwoFilesPatch(context.file, context.file, data[0], data[1].code);
-    const diffHtml = new Diff2HtmlUI({diff : diff});
-    diffHtml.draw('.github-diff', {inputFormat: 'json', outputFormat:'side-by-side', showFiles: false});
-    diffHtml.highlightCode('.github-diff');
-    changeModelState('diff', true);
-    return {
+    const code = {
       github: data[0],
-      lambda: data[1].code
+      lambda: data[1].code      
     }
-  })  
+    if (code.github === "" && type === "Pull") {
+      showAlert("There is nothing to pull", LEVEL_WARN);
+      return;
+    }
+
+    const oldCode = type === "Push" ? code.github : code.lambda;
+    const newCode = type === "Push" ? code.lambda : code.github;
+    const diff = JsDiff.createPatch(context.file, oldCode, newCode);
+    const diffHtml = new Diff2HtmlUI({diff : diff});
+    diffHtml.draw('.github-diff', {inputFormat: 'json', showFiles: false});
+    diffHtml.highlightCode('.github-diff');
+    if (oldCode === newCode) {
+      $('#github-diff-handler').prop("disabled", true).addClass('awsui-button-disabled');
+    }
+    $('#github-diff-handler').text(type).off().click(() => {
+      changeModelState('diff', false);
+      handler(code);
+    });
+    changeModelState('diff', true);
+  })
+  .catch((err) => {
+    showAlert("Unknow error.", LEVEL_ERROR);
+  })
 }
 
-function githubPull() {
-  checkDiff()
-  // .then((data) => {
-  //   const payload = {
-  //     operation: "updateFunctionCode",
-  //     codeSource: "inline",
-  //     functionName: context.functionName,
-  //     handler: context.current.handler,
-  //     runtime: context.current.runtime,
-  //     inline: data.github
-  //   };
-  //   return $.ajax({
-  //     url: 'https://' + context.endpoint + '/lambda/services/ajax?operation=updateFunctionCode',
-  //     headers: {
-  //       "X-Csrf-Token" : context.csrf
-  //     },
-  //     method: 'POST',
-  //     crossDomain: true,
-  //     contentType: 'application/json',
-  //     data: JSON.stringify(payload)
-  //   });
-  // })
-  // .then(() => {
-  //   console.log("pull ok");
-  //   location.reload();
-  // })
-  // .catch((err) => {
-  //   showAlert("Failed to pull", "error");
-  // });
+function githubPull(data) {
+  const payload = {
+    operation: "updateFunctionCode",
+    codeSource: "inline",
+    functionName: context.functionName,
+    handler: context.current.handler,
+    runtime: context.current.runtime,
+    inline: data.github
+  };
+  $.ajax({
+    url: 'https://' + context.endpoint + '/lambda/services/ajax?operation=updateFunctionCode',
+    headers: {
+      "X-Csrf-Token" : context.csrf
+    },
+    method: 'POST',
+    crossDomain: true,
+    contentType: 'application/json',
+    data: JSON.stringify(payload)
+  })
+  .then(() => {
+    console.log("pull ok");
+    location.reload();
+  })
+  .fail((err) => {
+    showAlert("Failed to pull", LEVEL_ERROR);
+  });
 }
 
-function githubPush() {
-  checkDiff()
-  .then((data) => {
-    const payload = {
-      content: data.lambda,
-      encoding: "utf-8"
-    };
-    return $.ajax({
+function githubPush(data) {
+  const payload = {
+    content: data.lambda,
+    encoding: "utf-8"
+  };
+  Promise.all([
+     $.ajax({
       url: `${baseUrl}/repos/${context.repo.fullName}/git/blobs`,
       headers: {
         "Authorization": `token ${accessToken}`
@@ -213,29 +250,20 @@ function githubPush() {
       dataType: 'json',
       contentType: 'application/json',
       data: JSON.stringify(payload)
-    });
-  })
-  .then((response) => {
-    return $.getJSON(
+    }),
+    $.getJSON(
       `${baseUrl}/repos/${context.repo.fullName}/branches/${context.branch}`,
       { access_token: accessToken }
     )
-    .then((branch) => {
-      return Object.assign(response, 
-      {
-        base_tree: branch.commit.commit.tree.sha,
-        parent: branch.commit.sha
-      });
-    });
-  })
-  .then((response) => {
+  ])
+  .then((responses) => {
     const payload = {
-      base_tree: response.base_tree,
+      base_tree: responses[1].commit.commit.tree.sha,
       tree : [{
         path: context.file,
         mode: "100644",
         type: "blob",
-        sha: response.sha
+        sha: responses[0].sha
       }]
     };
     return $.ajax({
@@ -249,8 +277,8 @@ function githubPush() {
       contentType: 'application/json',
       data: JSON.stringify(payload)
     })
-    .then((treeResponse) => {
-      return Object.assign(treeResponse, { parent: response.parent })
+    .then((response) => {
+      return Object.assign(response, { parent: responses[1].commit.sha })
     });
   })
   .then((response) => {
@@ -296,7 +324,7 @@ function githubPush() {
   })
   .catch((err) => {
     console.log(err);
-    showAlert("Failed to push", "error");
+    showAlert("Failed to push", LEVEL_ERROR);
   });
 }
 
@@ -305,7 +333,8 @@ function githubCreateRepo() {
   const desc = $('#new-repo-desc').val();
   const payload = {
     name : repo,
-    description : desc
+    description : desc,
+    auto_init : true
   }
   if (!repo || repo === "") return;
   $.ajax({
@@ -336,7 +365,7 @@ function githubCreateRepo() {
     showAlert(`Successfully create new repository ${repo}`);
   })
   .fail((err) => {
-    showAlert("Failed to create new repository.", "error");
+    showAlert("Failed to create new repository.", LEVEL_ERROR);
   });
 }
 
@@ -389,7 +418,7 @@ function githubCreateBranch() {
     showAlert(`Successfully create new branch: ${branch}`);
   })
   .fail((err) => {
-    showAlert("Failed to create new branch.", "error");
+    showAlert("Failed to create new branch.", LEVEL_ERROR);
   });
 }
 
@@ -541,7 +570,7 @@ function updateBranch() {
     if (!branch) {
       if (branches.length === 0) {
         branch = "";
-        showAlert("This repository do not has any branch yet, try to create a new branch such as [master].", "warning");
+        showAlert("This repository do not has any branch yet, try to create a new branch such as [master].", LEVEL_WARN);
       } else if ($.inArray(branch, branches.map(branch => branch.name)) < 0) {
         branch = ($.inArray("master", branches.map(branch => branch.name)) >= 0) ? "master" : branches[0].name;
       }
@@ -579,7 +608,7 @@ function changeButtonState(type, value) {
 
 //show alert using aws ui
 //level: info, warning, error
-function showAlert(message, level="info") {
+function showAlert(message, level=LEVEL_INFO) {
   $.get(chrome.runtime.getURL('content/alert.html'))
   .then((content) => {
     $('.content').before(content.replace(/_INFO_/g, level).replace(/_MESSAGE_/, message));

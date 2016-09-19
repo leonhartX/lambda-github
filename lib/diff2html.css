@@ -88,7 +88,7 @@
 .d2h-file-diff {
   overflow-x: scroll;
   overflow-y: auto;
-  height: 400px;
+  max-height: 400px;
 }
 
 .d2h-file-side-diff {

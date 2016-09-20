@@ -58,12 +58,15 @@
 .form .ghe-login-container {
   display: none;
 }
-
 .form .error {
   margin: 15px 0 0;
   color: #ee3030;
   font-size: 14px;
 }
+.form .login-container .login-item-otp {
+  display: none;
+}
+
 
 body {
   background: #76b852; /* fallback for old browsers */

@@ -45,10 +45,12 @@ function getGithubParam() {
   const username = $('#username').val();
   const password = $('#password').val();
   const baseUrl = `https://api.github.com`;
+  const otp = $('#otp').val();
   return {
   	username,
   	password,
-  	baseUrl
+  	baseUrl,
+    otp
   };
 }
 
@@ -56,10 +58,12 @@ function getGHEParam() {
   const username = $('#ghe-username').val();
   const password = $('#ghe-password').val();
   const baseUrl = $('#ghe-url').val() + "/api/v3";
+  const otp = $('#ghe-otp').val();
   return {
   	username,
   	password,
-  	baseUrl
+  	baseUrl,
+    otp
   };
 }
 
@@ -67,6 +71,7 @@ function loginGithub(param) {
   const username = param.username;
   const password = param.password;
   const baseUrl = param.baseUrl;
+  const otp = param.otp
   if(username === "" || password === "") {
   	return;
   }
@@ -76,11 +81,15 @@ function loginGithub(param) {
   	],
   	note: "lambda-hub_" + Date.now()
   }
+  let headers = {
+    Authorization: 'Basic ' + btoa(`${username}:${password}`)
+  };
+  if (otp && otp !== "") {
+    headers['X-GitHub-OTP'] = otp;
+  }
   $.ajax({
   	url: `${baseUrl}/authorizations`,
-  	headers: {
-        'Authorization': 'Basic ' + btoa(`${username}:${password}`)
-    },
+  	headers: headers,
    	method: "POST",
     dataType: 'json',
     contentType: 'application/json',
@@ -97,7 +106,13 @@ function loginGithub(param) {
     });
   })
   .fail((err) => {
-    $('.error').show();
+    if (err.status == 401 && 
+        err.getResponseHeader('X-GitHub-OTP') !== null && 
+        $('.login-item-otp').filter(":visible").length == 0) {
+      $('.login-item').animate({height: "toggle", opacity: "toggle"}, "slow");
+    } else {
+      $('.error').show();
+    }
   })
 }
 

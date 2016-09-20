@@ -4,6 +4,14 @@ let baseUrl, accessToken, user;
 const LEVEL_ERROR = "error";
 const LEVEL_WARN = "warning";
 const LEVEL_INFO = "info";
+const MODEL_FUNC = {
+  repo : showCreateRepo,
+  branch : showCreateBranch
+};
+const CREATE_FUNC = {
+  repo : githubCreateRepo,
+  branch : githubCreateBranch
+};
 
 chrome.runtime.onMessage.addListener(() => {
   if($('.github').length === 0) {
@@ -35,43 +43,18 @@ $(() => {
     $(document).on('click', `#github-bind-${type}`, (event) => {
       $(`.github-${type}-dropdown`).show();
     });
-    $(document).on('click', `#github-new-${type}`, showCreateRepo);
+    $(document).on('click', `#github-new-${type}`, MODEL_FUNC[type]);
     $(document).on('input propertychange', `#new-${type}-name`, (event) => {
       changeButtonState(type, event.target.value);
     });
     $(document).on('click', `.github-${type}-model-dismiss`, (event) => {
       changeModelState(type, false);
     });
+    $(document).on('click', `#github-create-${type}`, (event) => {
+      changeModelState(type, false);
+      CREATE_FUNC[type]();
+    });
   })
-  // $(document).on('click', '#github-bind-repo', (event) => {
-  //   $('.github-repo-dropdown').show();
-  // });
-  // $(document).on('click', '#github-bind-branch', (event) => {
-  //   $('.github-branch-dropdown').show();
-  // });
-  // $(document).on('click', '#github-new-repo', showCreateRepo);
-  // $(document).on('input propertychange', '#new-repo-name', (event) => {
-  //   changeButtonState('repo', event.target.value);
-  // })
-  // $(document).on('click', '.github-repo-model-dismiss', (event) => {
-  //   changeModelState('repo', false);
-  // })
-  $(document).on('click', '#github-create-repo', (event) => {
-    changeModelState('repo', false);
-    githubCreateRepo();
-  });
-
-  // $(document).on('click', '#github-new-branch', showCreateBranch);
-  // $(document).on('input propertychange', '#new-branch-name', (event) => {
-  //   changeButtonState('branch', event.target.value);
-  // })
-  // $(document).on('click', '.github-branch-model-dismiss', () => {
-  //   changeModelState('branch', false);
-  // })
-  $(document).on('click', '#github-create-branch', () => {
-    changeModelState('branch', false);
-    githubCreateBranch();
-  });
 
   $(document).on('click', '.github-diff-model-dismiss', () => {
     changeModelState('diff', false);
@@ -87,6 +70,7 @@ $(() => {
   $(document).on('click', '#github-push', () => {
     showDiff('Push', githubPush);
   });
+
   $(document).on('click', '#github-login', (event) => {
     if (chrome.runtime.openOptionsPage) {
       chrome.runtime.openOptionsPage();
@@ -185,15 +169,31 @@ function showDiff(type, handler) {
       showAlert("There is nothing to pull", LEVEL_WARN);
       return;
     }
-
+    //setting the diff model
     const oldCode = type === "Push" ? code.github : code.lambda;
     const newCode = type === "Push" ? code.lambda : code.github;
     const diff = JsDiff.createPatch(context.file, oldCode, newCode);
     const diffHtml = new Diff2HtmlUI({diff : diff});
     diffHtml.draw('.github-diff', {inputFormat: 'json', showFiles: false});
     diffHtml.highlightCode('.github-diff');
+    $('#commit-comment').off();
     if (oldCode === newCode) {
       $('#github-diff-handler').prop("disabled", true).addClass('awsui-button-disabled');
+      $('.github-comment').hide();
+    } else {
+      if (type === 'Push') { //push must have commit comment
+        $('.github-comment').show();
+        $('#github-diff-handler').prop("disabled", true).addClass('awsui-button-disabled');
+        $('#commit-comment').on('input propertychange', (event) => {
+          if (event.target.value === "") {
+            $(`#github-diff-handler`).prop("disabled", true).addClass('awsui-button-disabled');
+          } else {
+            $(`#github-diff-handler`).prop("disabled", false).removeClass('awsui-button-disabled');
+          }
+        });
+      } else {
+        $('.github-comment').hide();
+      }
     }
     $('#github-diff-handler').text(type).off().click(() => {
       changeModelState('diff', false);
@@ -202,7 +202,11 @@ function showDiff(type, handler) {
     changeModelState('diff', true);
   })
   .catch((err) => {
-    showAlert("Unknow error.", LEVEL_ERROR);
+    if (!context.repo || !context.branch) {
+      showAlert("Have not bind Github repository or branch.", LEVEL_WARN);
+    } else {
+      showAlert("Unknow error.", LEVEL_ERROR);
+    }
   })
 }
 
@@ -283,7 +287,7 @@ function githubPush(data) {
   })
   .then((response) => {
     const payload = {
-      message: "commit from lambda",
+      message: $('#commit-comment').val(),
       tree: response.sha,
       parents: [
         response.parent
@@ -355,6 +359,9 @@ function githubCreateRepo() {
     };
     context.repo = repo;
     Object.assign(context.bindRepo, { [context.functionName] : repo });
+    if (context.bindBranch[context.functionName]) {
+      delete context.bindBranch[context.functionName];
+    }
     chrome.storage.sync.set({ bindRepo: context.bindRepo });
     return response;
   })
@@ -567,13 +574,11 @@ function updateBranch() {
       $('#github-branches').append(liContent);
     });
     let branch = context.bindBranch[context.functionName];
-    if (!branch) {
-      if (branches.length === 0) {
-        branch = "";
-        showAlert("This repository do not has any branch yet, try to create a new branch such as [master].", LEVEL_WARN);
-      } else if ($.inArray(branch, branches.map(branch => branch.name)) < 0) {
-        branch = ($.inArray("master", branches.map(branch => branch.name)) >= 0) ? "master" : branches[0].name;
-      }
+    if (!branch && branches.length === 0) {
+      branch = "";
+      showAlert("This repository do not has any branch yet, try to create a new branch such as [master].", LEVEL_WARN);
+    } else if ($.inArray(branch, branches.map(branch => branch.name)) < 0) {
+      branch = ($.inArray("master", branches.map(branch => branch.name)) >= 0) ? "master" : branches[0].name;
     }
     $('#github-bind-branch').text(`Branch: ${branch}`);
     //update context and storage

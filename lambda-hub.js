@@ -13,34 +13,26 @@ const CREATE_FUNC = {
   branch : githubCreateBranch
 };
 
-chrome.runtime.onMessage.addListener((msg) => {
-  switch (msg.cmd) {
-    case 'login':
-    case 'logout':
-      location.reload();
-      break;
-    case 'init':
-      initContext()
-      .then(initLambdaList)
-      .then(initPageContent)
-      .then(getGithubRepos)
-      .then(updateRepo)
-      .then(updateBranch)
-      .catch((err) => {
-        switch (err.message) {
-          case "need login" :
-            initLoginContent();
-            break;
-          case "nothing" :
-            break;
-          default:
-            console.log(err);
-            break;
-        }
-      });
-      break;
-    default:
-      break;
+chrome.runtime.onMessage.addListener(() => {
+  if ($('.github').length === 0) {
+    initContext()
+    .then(initLambdaList)
+    .then(initPageContent)
+    .then(getGithubRepos)
+    .then(updateRepo)
+    .then(updateBranch)
+    .catch((err) => {
+      switch (err.message) {
+        case "need login" :
+          initLoginContent();
+          break;
+        case "nothing" :
+          break;
+        default:
+          console.log(err);
+          break;
+      }
+    });
   }
 });
 

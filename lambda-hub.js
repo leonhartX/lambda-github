@@ -13,26 +13,34 @@ const CREATE_FUNC = {
   branch : githubCreateBranch
 };
 
-chrome.runtime.onMessage.addListener(() => {
-  if($('.github').length === 0) {
-    initContext()
-    .then(initLambdaList)
-    .then(initPageContent)
-    .then(getGithubRepos)
-    .then(updateRepo)
-    .then(updateBranch)
-    .catch((err) => {
-      switch (err.message) {
-        case "need login" :
-          initLoginContent();
-          break;
-        case "nothing" :
-          break;
-        default:
-          console.log(err);
-          break;
-      }
-    });
+chrome.runtime.onMessage.addListener((msg) => {
+  switch (msg.cmd) {
+    case 'login':
+    case 'logout':
+      location.reload();
+      break;
+    case 'init':
+      initContext()
+      .then(initLambdaList)
+      .then(initPageContent)
+      .then(getGithubRepos)
+      .then(updateRepo)
+      .then(updateBranch)
+      .catch((err) => {
+        switch (err.message) {
+          case "need login" :
+            initLoginContent();
+            break;
+          case "nothing" :
+            break;
+          default:
+            console.log(err);
+            break;
+        }
+      });
+      break;
+    default:
+      break;
   }
 });
 
@@ -70,7 +78,6 @@ $(() => {
   $(document).on('click', '#github-push', () => {
     showDiff('Push', githubPush);
   });
-
   $(document).on('click', '#github-login', (event) => {
     if (chrome.runtime.openOptionsPage) {
       chrome.runtime.openOptionsPage();
@@ -78,6 +85,7 @@ $(() => {
       window.open(chrome.runtime.getURL('options/options.html'));
     }
   });
+
   $(document).on('click', '.github-repo', (event) => {
     if (context.repo && event.target.text === context.repo.name) return;
     //update context.repo with name and fullName
@@ -98,7 +106,6 @@ $(() => {
       updateBranch(name);
     });
   });
-
   $(document).on('click', '.github-branch', (event) => {
     if (context.branch && event.target.text === context.branch) return;
     //update context.branch and save to storage

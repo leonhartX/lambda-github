@@ -1,6 +1,7 @@
 "use strict";
 $(() => {
   $('.message a').click(function(){
+   $('.error').hide();
    $('.login-container').animate({height: "toggle", opacity: "toggle"}, "slow");
   });
   $('#login').click((e) => {
@@ -18,18 +19,22 @@ $(() => {
   	$('.login-container').hide();
   	$('.logout-container').show();
   	let domain = "@Github.com";
-  	let link = `https://github.com/${item.user}`;
+  	let userLink = `https://github.com/${item.user}`;
+    let tokenLink = 'https://github.com/settings/tokens';
   	if (item.baseUrl !== "https://api.github.com") {
   	  let match = item.baseUrl.match(/:\/\/(.*)\/api\/v3/);
   	  if (!match || !match[1]) {
   	  	domain = "";
-  	  	link = "";
+  	  	userLink = "";
+        tokenLink = "";
   	  } else {
   	  	domain = `@${match[1]}`;
-  	  	link = `https://${match[1]}/${item.user}`;
+  	  	userLink = `https://${match[1]}/${item.user}`;
+        tokenLink = `https://${match[1]}/settings/tokens`;
   	  }
   	}
-  	$('#login-user').text(`${item.user}${domain}`).attr("href", link);
+  	$('#login-user').text(`${item.user}${domain}`).attr("href", userLink);
+    $('#token').attr("href", tokenLink);
   })
   .catch((err) => {
   	//not logged in
@@ -69,7 +74,7 @@ function loginGithub(param) {
   	scopes: [
   	  "public_repo"
   	],
-  	note: "lambda-hub"
+  	note: "lambda-hub_" + Date.now()
   }
   $.ajax({
   	url: `${baseUrl}/authorizations`,
@@ -85,16 +90,26 @@ function loginGithub(param) {
   	chrome.storage.sync.set({ user: username, token: response.token, id: response.id, baseUrl: baseUrl}, () => {
   	  location.reload();
   	});
+    chrome.storage.local.get("tab", (item) => {
+      if(item.tab) {
+        chrome.tabs.reload(item.tab);     
+      }
+    });
   })
   .fail((err) => {
-  	console.log(err);
+    $('.error').show();
   })
 }
 
 function logoutGithub() {
   chrome.storage.sync.remove(["token", "user", "id", "baseUrl"], () => {
   	location.reload();
-  })
+  });
+  chrome.storage.local.get("tab", (item) => {
+    if(item.tab) {
+      chrome.tabs.reload(item.tab);          
+    }
+  });
 }
 
 function checkToken() {

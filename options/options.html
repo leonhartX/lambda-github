@@ -11,12 +11,14 @@
         <div class="logout-container">
           <h2>Logged in as: <a target="_blank" id="login-user">XXX</a></h2>
           <button id="logout">logout</button>
+          <p class="warning">After logout, remember to delete the <a id="token" href="#">access token</a></p>
         </div>
         <div class="login-container">
           <input id="username" type="text" placeholder="username"/>
           <input id="password" type="password" placeholder="password"/>
           <button id="login">github login</button>
           <p class="message">Use Github Enterprise? <a href="#">Login to Github Enterprise</a></p>
+          <p class="error" style="display: none">Can not create access token, please check your username and password.</p>
         </div>
         <div class="login-container ghe-login-container">
           <input id="ghe-url" type="text" placeholder="https://your-github-enterprise.com"/>
@@ -24,6 +26,7 @@
           <input id="ghe-password" type="password" placeholder="password"/>
           <button id="ghe-login">github enterprise login</button>
           <p class="message">Use Github.com? <a href="#">Login to Github.com</a></p>
+          <p class="error" style="display: none">Can not create access token, please check your GHE domain, username and password.</p>
         </div>
       </div>
     </div>

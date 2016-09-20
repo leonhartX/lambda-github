@@ -43,12 +43,12 @@
 .form button:hover,.form button:active,.form button:focus {
   background: #43A047;
 }
-.form .message {
+.form .message,.form .warning {
   margin: 15px 0 0;
   color: #b3b3b3;
   font-size: 12px;
 }
-.form .message a {
+.form .message a,.form .warning a {
   color: #4CAF50;
   text-decoration: none;
 }
@@ -57,6 +57,12 @@
 }
 .form .ghe-login-container {
   display: none;
+}
+
+.form .error {
+  margin: 15px 0 0;
+  color: #ee3030;
+  font-size: 14px;
 }
 
 body {

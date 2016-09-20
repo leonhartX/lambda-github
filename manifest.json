@@ -15,6 +15,7 @@
   "options_ui": {
     "page": "options/options.html"
   },
+  "options_page": "options/options.html",
   "content_scripts": [
     {
       "matches":["https://*.console.aws.amazon.com/lambda/*"],
@@ -49,6 +50,7 @@
     "webRequest",
     "storage",
     "declarativeContent",
-    "activeTab"
+    "activeTab",
+    "tabs"
   ]
 }

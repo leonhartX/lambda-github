@@ -14,9 +14,8 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 chrome.webRequest.onCompleted.addListener((details) => {
-  chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
-    chrome.tabs.sendMessage(tabs[0].id, {cmd: "init"});
-  });
+  chrome.storage.local.set({ tab: details.tabId} );
+  chrome.tabs.sendMessage(details.tabId, {cmd: "init"});
 },
 { 
   urls: [ 

@@ -1,0 +1,8 @@
+{
+  "appName": {
+    "message": "Lambda Github Assistant"
+  },
+  "appDesc": {
+    "message": "Manage your lambda inline code with github(or github enterprise)"
+  }
+}

@@ -29,7 +29,7 @@ chrome.runtime.onMessage.addListener(() => {
         case "nothing" :
           break;
         default:
-          console.log(err);
+          showAlert("Unknow Error", LEVEL_ERROR);
           break;
       }
     });
@@ -129,6 +129,10 @@ $(() => {
 });
 
 function showDiff(type, handler) {
+  if (type === "Pull" && context.qualifier !== "$LATEST") {
+    showAlert("Pull code is only available to $LATEST.", LEVEL_WARN);
+    return;
+  }
   return Promise.all([
     new Promise((resolve, reject) => {
       $.getJSON(
@@ -176,6 +180,7 @@ function showDiff(type, handler) {
     diffHtml.draw('.github-diff', {inputFormat: 'json', showFiles: false});
     diffHtml.highlightCode('.github-diff');
     $('#commit-comment').off();
+    $('#github-diff-handler').prop("disabled", false).removeClass('awsui-button-disabled');
     if (oldCode === newCode) {
       $('#github-diff-handler').prop("disabled", true).addClass('awsui-button-disabled');
       $('.github-comment').hide();
@@ -229,7 +234,6 @@ function githubPull(data) {
     data: JSON.stringify(payload)
   })
   .then(() => {
-    console.log("pull ok");
     location.reload();
   })
   .fail((err) => {
@@ -323,10 +327,8 @@ function githubPush(data) {
   })
   .then(() => {
     showAlert(`Successfully push to ${context.branch} of ${context.repo.name}`);
-    console.log("push ok");
   })
   .catch((err) => {
-    console.log(err);
     showAlert("Failed to push", LEVEL_ERROR);
   });
 }

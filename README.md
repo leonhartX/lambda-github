@@ -2,7 +2,7 @@
 Chrome-extension for manage lambda inline code with github/github enterprise.
 
 #Install
-Install this extension from chrome web store.
+Install this extension from [chrome web store](https://chrome.google.com/webstore/detail/bmjcibkkmbmabejialhgnnmhpmdmijij).
 
 #Usage
 After install, when you open AWS Lambda console, a new button will appear to ask you login in to Github/Github Enterprise.
@@ -29,3 +29,6 @@ Manage your code with the similar `Push` and `Pull`.
 ##Logout
 You can logout from the extension's option page any time. After logout, the  access token stored in extension will be deleted, 
 but you will need to delete the token it self from Github/Github Enterprise's settins page.
+
+#Support
+please create an issue for any question or bug report.

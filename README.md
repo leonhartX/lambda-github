@@ -21,6 +21,9 @@ After login, you can bind your lambda function with Github repo and branch, or c
 
 ##Manage
 Manage your code with the similar `Push` and `Pull`.
+
+**The code will sync to Github's repo, with a file named `index.js`(nodejs) or `index.py`(python) under the root path.**
+
 - `Pull` only works for lambda's `$LATEST` version, since published version or alias is readonly.
 - `Push` will commit your current shown code(work for any qualifier) to the binding repo/branch.
 - A diff dialog will shown before you confirm to `Push` or `Pull`.

@@ -28,7 +28,6 @@ chrome.runtime.onMessage.addListener(() => {
           break;
         default:
           showAlert("Unknow Error", LEVEL_ERROR);
-          console.log(err);
           break;
       }
     });
@@ -220,7 +219,6 @@ function showDiff(type, handler) {
       showAlert("Have not bind Github repository or branch.", LEVEL_WARN);
     } else {
       showAlert("Unknow error.", LEVEL_ERROR);
-      console.log(err);
     }
   })
 }

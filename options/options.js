@@ -79,7 +79,7 @@ function loginGithub(param) {
   	scopes: [
   	  "public_repo"
   	],
-  	note: "lambda-hub_" + Date.now()
+  	note: "lambda-github_" + Date.now()
   }
   let headers = {
     Authorization: 'Basic ' + btoa(`${username}:${password}`)

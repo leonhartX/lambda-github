@@ -1,6 +1,7 @@
 "use strict";
 let context = {};
 let baseUrl, accessToken, user;
+const scriptWapper = "script_wrapper";
 const LEVEL_ERROR = "error";
 const LEVEL_WARN = "warning";
 const LEVEL_INFO = "info";
@@ -142,40 +143,24 @@ function showDiff(type, handler) {
     showAlert("Pull code is only available to $LATEST.", LEVEL_WARN);
     return;
   }
-  return Promise.all([
-    new Promise((resolve, reject) => {
-      $.getJSON(
-        `${baseUrl}/repos/${context.repo.fullName}/contents/${context.file}?ref=${context.branch}`,
-        { access_token: accessToken }
-      )
-      .then((data) => {
-        resolve($.get(data.download_url))
-      })
-      .fail((err) => {
-        if (err.status === 404) resolve("");
-        else reject(err);
-      })
-    }),
-    $.ajax({
-      url: 'https://' + context.endpoint + '/lambda/services/ajax?operation=getFunctionCode',
-      headers: {
-        "X-Csrf-Token" : context.csrf
-      },
-      method: 'POST',
-      crossDomain: true,
-      dataType: 'json',
-      contentType: 'application/json',
-      data: JSON.stringify({
-        functionName: context.functionName,
-        qualifier: context.qualifier,
-        operation: "getFunctionCode"
-      })
+  return new Promise((resolve, reject) => {
+    $.getJSON(
+      `${baseUrl}/repos/${context.repo.fullName}/contents/${context.file}?ref=${context.branch}`,
+      { access_token: accessToken }
+    )
+    .then((data) => {
+      resolve($.get(data.download_url))
     })
-  ])
+    .fail((err) => {
+      if (err.status === 404) resolve("");
+      else reject(err);
+    })
+  })
   .then((data) => {
+    const lambda = getLambdaCode();
     const code = {
-      github: data[0],
-      lambda: data[1].code      
+      github: data,
+      lambda: lambda     
     }
     if (code.github === "" && type === "Pull") {
       showAlert("There is nothing to pull", LEVEL_WARN);
@@ -185,6 +170,10 @@ function showDiff(type, handler) {
     const oldCode = type === "Push" ? code.github : code.lambda;
     const newCode = type === "Push" ? code.lambda : code.github;
     const diff = JsDiff.createPatch(context.file, oldCode, newCode);
+    if (diff.indexOf("@@") < 0) {
+      showAlert("Everything already up-to-date", LEVEL_WARN);
+      return;
+    }
     const diffHtml = new Diff2HtmlUI({diff : diff});
     diffHtml.draw('.github-diff', {inputFormat: 'json', showFiles: false});
     diffHtml.highlightCode('.github-diff');
@@ -224,30 +213,7 @@ function showDiff(type, handler) {
 }
 
 function githubPull(data) {
-  const payload = {
-    operation: "updateFunctionCode",
-    codeSource: "inline",
-    functionName: context.functionName,
-    handler: context.current.handler,
-    runtime: context.current.runtime,
-    inline: data.github
-  };
-  $.ajax({
-    url: 'https://' + context.endpoint + '/lambda/services/ajax?operation=updateFunctionCode',
-    headers: {
-      "X-Csrf-Token" : context.csrf
-    },
-    method: 'POST',
-    crossDomain: true,
-    contentType: 'application/json',
-    data: JSON.stringify(payload)
-  })
-  .then(() => {
-    location.reload();
-  })
-  .fail((err) => {
-    showAlert("Failed to pull", LEVEL_ERROR);
-  });
+  setLambdaCode(data.github);
 }
 
 function githubPush(data) {
@@ -675,4 +641,30 @@ function showAlert(message, level=LEVEL_INFO) {
   .then((content) => {
     $('.content').before(content.replace(/_INFO_/g, level).replace(/_MESSAGE_/, message));
   });
+}
+
+function getLambdaCode() {
+  return runScript('return window.ace.edit("editor").getValue();');
+}
+
+function setLambdaCode(code) {
+  localStorage.setItem("code", code);
+  return runScript('\
+    const code = localStorage.getItem("code");\
+    if (code) {\
+      window.ace.edit("editor").setValue(code);\
+      return true;\
+    } else {\
+      return false;\
+    }'
+  );
+}
+
+function runScript(script) {
+  $('iframe').attr(
+    'src',
+    'javascript: top.document.getElementById("script_wrapper").dataset.result = \
+    JSON.stringify(top.window.eval.call(top.window,\'(function(){' + script + '})()\'))'
+  );
+  return JSON.parse($('iframe').attr('data-result'));
 }

@@ -4,13 +4,10 @@ let baseUrl, accessToken, user;
 const LEVEL_ERROR = "error";
 const LEVEL_WARN = "warning";
 const LEVEL_INFO = "info";
-const MODEL_FUNC = {
-  repo : showCreateRepo,
-  branch : showCreateBranch
-};
 const CREATE_FUNC = {
   repo : githubCreateRepo,
-  branch : githubCreateBranch
+  branch : githubCreateBranch,
+  file : githubCreateFile
 };
 
 chrome.runtime.onMessage.addListener(() => {
@@ -21,6 +18,7 @@ chrome.runtime.onMessage.addListener(() => {
     .then(getGithubRepos)
     .then(updateRepo)
     .then(updateBranch)
+    .then(updateFile)
     .catch((err) => {
       switch (err.message) {
         case "need login" :
@@ -39,11 +37,13 @@ chrome.runtime.onMessage.addListener(() => {
 $(() => {
   //bind ui event handler
   $.ajaxSetup({ cache: false });
-  ['repo', 'branch'].forEach((type) => {
+  ['repo', 'branch', 'file'].forEach((type) => {
     $(document).on('click', `#github-bind-${type}`, (event) => {
       $(`.github-${type}-dropdown`).show();
     });
-    $(document).on('click', `#github-new-${type}`, MODEL_FUNC[type]);
+    $(document).on('click', `#github-new-${type}`, (event) => { 
+      showCreateContent(type) 
+    });
     $(document).on('input propertychange', `#new-${type}-name`, (event) => {
       changeButtonState(type, event.target.value);
     });
@@ -92,10 +92,14 @@ $(() => {
     if (context.bindBranch[context.functionName]) {
       delete context.bindBranch[context.functionName];
     }
+    if (context.bindFile[context.functionName]) {
+      delete context.bindFile[context.functionName];
+    }
     chrome.storage.sync.set({ bindRepo: context.bindRepo }, () => {
       $('#github-bind-repo').text(`Repo: ${name}`);
       $('.github-repo-dropdown').hide();
-      updateBranch(name);
+      updateBranch()
+      .then(updateFile);
     });
   });
   $(document).on('click', '.github-branch', (event) => {
@@ -109,22 +113,27 @@ $(() => {
       $('.github-branch-dropdown').hide();
     });
   });
+  $(document).on('click', '.github-file', (event) => {
+    if (context.file && event.target.text === context.file) return;
+    //update context.file and save to storage
+    const file = event.target.text;
+    context.file = file;
+    Object.assign(context.bindFile, { [context.functionName] : file });
+    chrome.storage.sync.set({ bindFile: context.bindFile }, () => {
+      $('#github-bind-file').text(`File: ${file}`);
+      $('.github-file-dropdown').hide();
+    });
+  });
 
   $(document).mouseup((event) => {
-    //hide repo list
-    let repo_container = $('.github-repo-dropdown');
-    if (!repo_container.is(event.target) 
-      && !$('#github-bind-repo').is(event.target)
-      && repo_container.has(event.target).length === 0) {
-      repo_container.hide();
-    }
-    //hide branch list
-    let branch = $('.github-branch-dropdown');
-    if (!branch.is(event.target) 
-      && !$('#github-bind-branch').is(event.target)
-      && branch.has(event.target).length === 0) {
-      branch.hide();
-    }
+    ['repo', 'branch', 'file'].forEach((type) => {
+      const container = $(`.github-${type}-dropdown`);
+      if (!container.is(event.target) 
+        && !$(`#github-${type}-repo`).is(event.target)
+        && container.has(event.target).length === 0) {
+        container.hide();
+      }
+    });
   });
 });
 
@@ -179,7 +188,7 @@ function showDiff(type, handler) {
     const diffHtml = new Diff2HtmlUI({diff : diff});
     diffHtml.draw('.github-diff', {inputFormat: 'json', showFiles: false});
     diffHtml.highlightCode('.github-diff');
-    $('#commit-comment').off();
+    $('#commit-comment').off().val("");
     $('#github-diff-handler').prop("disabled", false).removeClass('awsui-button-disabled');
     if (oldCode === newCode) {
       $('#github-diff-handler').prop("disabled", true).addClass('awsui-button-disabled');
@@ -369,7 +378,10 @@ function githubCreateRepo() {
   .then(getGithubRepos)
   .then(updateRepo)
   .then(updateBranch)
+  .then(updateFile)
   .then(() => {
+    $('#new-repo-name').val("");
+    $('#new-repo-desc').val("");
     showAlert(`Successfully create new repository ${repo}`);
   })
   .fail((err) => {
@@ -422,7 +434,9 @@ function githubCreateBranch() {
     return context.repo.name;
   })
   .then(updateBranch)
+  .then(updateFile)
   .then(() => {
+    $('#new-branch-name').val("");
     showAlert(`Successfully create new branch: ${branch}`);
   })
   .fail((err) => {
@@ -430,14 +444,21 @@ function githubCreateBranch() {
   });
 }
 
-function showCreateRepo() {
-  $('.github-repo-dropdown').hide();
-  changeModelState('repo', true);
+function githubCreateFile() {
+  const file = $('#new-file-name').val();
+  if (!file || file === "") return;
+  $('#github-bind-file').text(`File: ${file}`);
+  //update context and storage
+  context.file = file;
+  Object.assign(context.file, { [context.functionName] : file });
+  chrome.storage.sync.set({ bindFile: context.bindFile }, () => {
+    $('#new-file-name').val("");
+  });
 }
 
-function showCreateBranch() {
-  $('.github-branch-dropdown').hide();
-  changeModelState('branch', true);
+function showCreateContent(type) {
+  $(`.github-${type}-dropdown`).hide();
+  changeModelState(type, true);
 }
 
 function initContext() {
@@ -449,7 +470,7 @@ function initContext() {
   context.qualifier = match[5]? match[5] : "$LATEST";
 
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get(["csrf","token","user", "baseUrl", "bindRepo", "bindBranch"], (item) => {
+    chrome.storage.sync.get(["csrf","token","user", "baseUrl", "bindRepo", "bindBranch", "bindFile"], (item) => {
       if (!item.token) {
         reject(new Error("need login"));
       }
@@ -458,6 +479,7 @@ function initContext() {
       baseUrl = item.baseUrl;
       context.bindRepo = item.bindRepo || {};
       context.bindBranch = item.bindBranch || {};
+      context.bindFile = item.bindFile || {};
       if (item.csrf && item.csrf !== ""){
         context.csrf = item.csrf;
         resolve();
@@ -587,6 +609,40 @@ function updateBranch() {
     Object.assign(context.bindBranch, { [context.functionName] : branch });
     chrome.storage.sync.set({ bindBranch: context.bindBranch });
     return branch;
+  });
+}
+
+function updateFile() {
+  if (!context.branch) {
+    return null;
+  }
+  return $.getJSON(
+    `${baseUrl}/repos/${context.repo.fullName}/branches/${context.branch}`,
+    { access_token: accessToken }
+  )
+  .then((branch) => {
+     return $.getJSON(
+      `${baseUrl}/repos/${context.repo.fullName}/git/trees/${branch.commit.commit.tree.sha}`,
+      { access_token: accessToken, recursive: 1 }
+    );   
+  })
+  .then((trees) => {
+    $('#github-files').empty().append('<li><a id="github-new-file">Create new file</a></li>');
+    trees.tree.forEach((file) => {
+      if (file.type !== 'blob') return;
+      let liContent = `<li><a class="github-file" data=${file.path}>${file.path}</a></li>`
+      $('#github-files').append(liContent);
+    });
+    let file = context.bindFile[context.functionName];
+    if (!file || $.inArray(file, trees.tree.map(tree => tree.path)) < 0) {
+      file = context.current.runtime.indexOf("nodejs") >= 0 ? "index.js" : "index.py";
+    }
+    $('#github-bind-file').text(`File: ${file}`);
+    //update context and storage
+    context.file = file;
+    Object.assign(context.file, { [context.functionName] : file });
+    chrome.storage.sync.set({ bindFile: context.bindFile });
+    return file;
   })
 }
 

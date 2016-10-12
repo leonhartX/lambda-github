@@ -102,6 +102,53 @@
   <div class="awsui-modal-tabtrap" tabindex="-1"></div>
 </awsui-modal>
 
+<awsui-modal id="github-file-modal">
+  <div class="awsui-modal-tabtrap" tabindex="-1"></div>
+  <div class="github-file-model awsui-modal-__state-hidden awsui-modal-container">
+    <div class="awsui-modal-dialog awsui-modal-size-large" tabindex="-1">
+      <div class="awsui-modal-content">
+        <div class="awsui-modal-header">
+          <button class="github-file-model-dismiss awsui-modal-dismiss-control awsui-button-as-link awsui-icon times"></button>
+          Create a new file
+        </div>
+        <div class="awsui-modal-body">
+          <div region-container="content">
+            <span>
+              <div>
+                <span>Create a new file.</span>
+                <awsui-control-group class="">
+                  <div class="awsui-control-group-inside">
+                    <label class="awsui-control-group-label" for="awsui-textfield-1">File Name</label>
+                    <div class="awsui-control-group-controls">
+                      <div class="awsui-control-group-control" region-container="control">
+                        <span><awsui-textfield><input type="text" id="new-file-name" class="awsui-textfield awsui-textfield-type-text"></awsui-textfield></span>
+                      </div>
+                    </div>
+                  </div>
+                </awsui-control-group>
+              </div>
+            </span>
+          </div>
+        </div>
+        <div class="awsui-modal-footer">
+          <div region-container="footer">
+            <span>
+              <awsui-button class="awsui-util-f-r">
+                <button id="github-create-file" class="awsui-button awsui-button-disabled awsui-button-size-normal awsui-button-variant-primary awsui-hover-child-icons" type="submit" disabled="">Create</button>
+              </awsui-button>
+              <awsui-button class="awsui-util-f-r">
+                <button class="github-file-model-dismiss awsui-button awsui-button-size-normal awsui-button-variant-link awsui-hover-child-icons" type="submit">Cancel</button>
+              </awsui-button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="github-file-model awsui-modal-__state-hidden awsui-modal-overlay"></div>
+  <div class="awsui-modal-tabtrap" tabindex="-1"></div>
+</awsui-modal>
+
 <awsui-modal id="github-diff-modal">
   <div class="awsui-modal-tabtrap" tabindex="-1"></div>
   <div class="github-diff-model awsui-modal-__state-hidden awsui-modal-container">

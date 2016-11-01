@@ -145,8 +145,8 @@ function showDiff(type, handler) {
   }
   return new Promise((resolve, reject) => {
     $.getJSON(
-      `${baseUrl}/repos/${context.repo.fullName}/contents/${context.file}?ref=${context.branch}`,
-      { access_token: accessToken }
+      `${baseUrl}/repos/${context.repo.fullName}/contents/${context.file}`,
+      { access_token: accessToken, ref: context.branch }
     )
     .then((data) => {
       resolve($.get(data.download_url))
@@ -317,16 +317,20 @@ function githubCreateRepo() {
     auto_init : true
   }
   if (!repo || repo === "") return;
-  $.ajax({
-    url: `${baseUrl}/user/repos`,
-    headers: {
-      "Authorization": `token ${accessToken}`
-    },
-    method: 'POST',
-    crossDomain: true,
-    dataType: 'json',
-    contentType: 'application/json',
-    data: JSON.stringify(payload)
+  new Promise((resolve, reject) => {
+    $.ajax({
+      url: `${baseUrl}/user/repos`,
+      headers: {
+        "Authorization": `token ${accessToken}`
+      },
+      method: 'POST',
+      crossDomain: true,
+      dataType: 'json',
+      contentType: 'application/json',
+      data: JSON.stringify(payload)
+    })
+    .then(resolve)
+    .fail(reject);
   })
   .then((response) => {
     const repo = {
@@ -339,7 +343,7 @@ function githubCreateRepo() {
       delete context.bindBranch[context.functionName];
     }
     chrome.storage.sync.set({ bindRepo: context.bindRepo });
-    return response;
+    Promise.resolve(response);
   })
   .then(getGithubRepos)
   .then(updateRepo)
@@ -350,18 +354,23 @@ function githubCreateRepo() {
     $('#new-repo-desc').val("");
     showAlert(`Successfully create new repository ${repo}`);
   })
-  .fail((err) => {
+  .catch((err) => {
     showAlert("Failed to create new repository.", LEVEL_ERROR);
-  });
+  })
+
 }
 
 function githubCreateBranch() {
   const branch = $('#new-branch-name').val();
   if (!branch || branch === "") return;
-  $.getJSON(
-    `${baseUrl}/repos/${context.repo.fullName}/git/refs/heads/master`,
-    { access_token: accessToken }
-  )
+  new Promise((resolve, reject) => {
+    $.getJSON(
+      `${baseUrl}/repos/${context.repo.fullName}/git/refs/heads/master`,
+      { access_token: accessToken }
+    )
+    .then(resolve)
+    .fail(reject)  
+  })
   .then((response) => {
     if (response.object) {
       return response.object.sha;
@@ -405,7 +414,7 @@ function githubCreateBranch() {
     $('#new-branch-name').val("");
     showAlert(`Successfully create new branch: ${branch}`);
   })
-  .fail((err) => {
+  .catch((err) => {
     showAlert("Failed to create new branch.", LEVEL_ERROR);
   });
 }
@@ -479,17 +488,32 @@ function initLambdaList() {
   });
 }
 
-function getGithubRepos() {
-  return $.ajax({
-    url: `${baseUrl}/user/repos`,
-    headers: {
-      "Authorization": `token ${accessToken}`
-    },
-    method: 'GET',
-    crossDomain: true,
-    dataType: 'json',
-    contentType: 'application/json'
+function followPaginate(data) {
+  return new Promise((resolve, reject) => {
+    $.getJSON(data.url)
+    .then((response, status, xhr) => {
+      data.items = data.items.concat(response);
+      const link = xhr.getResponseHeader('Link');
+      let url = null;
+      if (link) {
+        const match = link.match(/<(.*?)>; rel="next"/);
+        url = match && match[1] ? match[1] : null;
+      }
+      resolve({ items: data.items, url: url });
+    })
+    .fail(reject);
+  });
+}
+
+function getAllItems(promise) {
+  return promise.then(followPaginate)
+  .then((data) => {
+    return data.url ? getAllItems(Promise.resolve(data), followPaginate) : data.items;
   })
+}
+
+function getGithubRepos() {
+  return getAllItems(Promise.resolve({items: [], url: `${baseUrl}/user/repos?access_token=${accessToken}`}))
   .then((response) => {
     const repos = response.map((repo) => {
       return { name : repo.name, fullName : repo.full_name }
@@ -552,11 +576,8 @@ function updateBranch() {
   if (!context.repo) {
     return null;
   }
-  return $.getJSON(
-    `${baseUrl}/repos/${context.repo.fullName}/branches`,
-    { access_token: accessToken }
-  )
-  .done((branches) => {
+  return getAllItems(Promise.resolve({items: [], url: `${baseUrl}/repos/${context.repo.fullName}/branches?access_token=${accessToken}`}))
+  .then((branches) => {
     $('#github-branches').empty().append('<li><a id="github-new-branch">Create new branch</a></li>');
     branches.forEach((branch) => {
       let liContent = `<li><a class="github-branch" data=${branch.name}>${branch.name}</a></li>`

@@ -1,4 +1,9 @@
 # lambda-github
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/bmjcibkkmbmabejialhgnnmhpmdmijij.svg)](https://chrome.google.com/webstore/detail/google-apps-script-github/bmjcibkkmbmabejialhgnnmhpmdmijij)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/d/bmjcibkkmbmabejialhgnnmhpmdmijij.svg)](https://chrome.google.com/webstore/detail/google-apps-script-github/bmjcibkkmbmabejialhgnnmhpmdmijij)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating/bmjcibkkmbmabejialhgnnmhpmdmijij.svg)](https://chrome.google.com/webstore/detail/google-apps-script-github/bmjcibkkmbmabejialhgnnmhpmdmijij)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating-count/bmjcibkkmbmabejialhgnnmhpmdmijij.svg)](https://chrome.google.com/webstore/detail/google-apps-script-github/bmjcibkkmbmabejialhgnnmhpmdmijij)
+
 Chrome-extension for manage lambda inline code with github/github enterprise.
 
 #Install

@@ -11,33 +11,33 @@ $(() => {
     addCred(getGHEParam());
   });
   $('#logout').click((e) => {
-  	logoutGithub();
+    logoutGithub();
   });
 
   checkToken()
   .then((item) => {
-  	$('.login-container').hide();
-  	$('.logout-container').show();
-  	let domain = "@Github.com";
-  	let userLink = `https://github.com/${item.user}`;
+    $('.login-container').hide();
+    $('.logout-container').show();
+    let domain = "@Github.com";
+    let userLink = `https://github.com/${item.user}`;
     let tokenLink = 'https://github.com/settings/tokens';
-  	if (item.baseUrl !== "https://api.github.com") {
-  	  let match = item.baseUrl.match(/:\/\/(.*)\/api\/v3/);
-  	  if (!match || !match[1]) {
-  	  	domain = "";
-  	  	userLink = "";
+    if (item.baseUrl !== "https://api.github.com") {
+      let match = item.baseUrl.match(/:\/\/(.*)\/api\/v3/);
+      if (!match || !match[1]) {
+        domain = "";
+        userLink = "";
         tokenLink = "";
-  	  } else {
-  	  	domain = `@${match[1]}`;
-  	  	userLink = `https://${match[1]}/${item.user}`;
+      } else {
+        domain = `@${match[1]}`;
+        userLink = `https://${match[1]}/${item.user}`;
         tokenLink = `https://${match[1]}/settings/tokens`;
-  	  }
-  	}
-  	$('#login-user').text(`${item.user}${domain}`).attr("href", userLink);
+      }
+    }
+    $('#login-user').text(`${item.user}${domain}`).attr("href", userLink);
     $('#token').attr("href", tokenLink);
   })
   .catch((err) => {
-  	//not logged in
+    //not logged in
   })
 })
 
@@ -48,10 +48,10 @@ function getGithubParam() {
   const baseUrl = `https://api.github.com`;
   const otp = $('#otp').val();
   return {
-  	username,
-  	password,
+    username,
+    password,
     token,
-  	baseUrl,
+    baseUrl,
     otp
   };
 }
@@ -63,10 +63,10 @@ function getGHEParam() {
   const baseUrl = $('#ghe-url').val() + "/api/v3";
   const otp = $('#ghe-otp').val();
   return {
-  	username,
-  	password,
+    username,
+    password,
     token,
-  	baseUrl,
+    baseUrl,
     otp
   };
 }
@@ -97,10 +97,10 @@ function loginGithub(param) {
   const baseUrl = param.baseUrl;
   const otp = param.otp
   const payload = {
-  	scopes: [
-  	  "repo"
-  	],
-  	note: "lambda-hub_" + Date.now()
+    scopes: [
+      "repo"
+    ],
+    note: "lambda-hub_" + Date.now()
   }
   let headers = {
     Authorization: 'Basic ' + btoa(`${username}:${password}`)
@@ -109,17 +109,17 @@ function loginGithub(param) {
     headers['X-GitHub-OTP'] = otp;
   }
   $.ajax({
-  	url: `${baseUrl}/authorizations`,
-  	headers: headers,
-   	method: "POST",
+    url: `${baseUrl}/authorizations`,
+    headers: headers,
+     method: "POST",
     dataType: 'json',
     contentType: 'application/json',
     data: JSON.stringify(payload)
   })
   .done((response) => {
-  	chrome.storage.sync.set({ user: username, token: response.token, baseUrl: baseUrl}, () => {
-  	  location.reload();
-  	});
+    chrome.storage.sync.set({ user: username, token: response.token, baseUrl: baseUrl}, () => {
+      location.reload();
+    });
     chrome.storage.local.get("tab", (item) => {
       if(item.tab) {
         chrome.tabs.reload(item.tab);     
@@ -139,7 +139,7 @@ function loginGithub(param) {
 
 function logoutGithub() {
   chrome.storage.sync.remove(["token", "user", "baseUrl"], () => {
-  	location.reload();
+    location.reload();
   });
   chrome.storage.local.get("tab", (item) => {
     if(item.tab) {

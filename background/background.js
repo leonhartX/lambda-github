@@ -19,7 +19,7 @@ chrome.webRequest.onCompleted.addListener((details) => {
 },
 { 
   urls: [ 
-    "https://*.console.aws.amazon.com/lambda/services/ajax?operation=getFunctionCode"
+    "https://*.console.aws.amazon.com/lambda/services/ajax?operation=getFunctionCode*"
   ],
   types: ["xmlhttprequest"]
 },
@@ -36,7 +36,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener((details) => {
   })
 },
 { 
-  urls: [ "https://*.console.aws.amazon.com/lambda/services/ajax?operation=getFunctionCode" ],
+  urls: [ "https://*.console.aws.amazon.com/lambda/services/ajax?operation=getFunctionCode*" ],
   types: ["xmlhttprequest"]
 },
 [

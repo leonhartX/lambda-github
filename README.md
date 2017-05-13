@@ -1,4 +1,9 @@
 # lambda-github
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/bmjcibkkmbmabejialhgnnmhpmdmijij.svg)](https://chrome.google.com/webstore/detail/google-apps-script-github/bmjcibkkmbmabejialhgnnmhpmdmijij)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/d/bmjcibkkmbmabejialhgnnmhpmdmijij.svg)](https://chrome.google.com/webstore/detail/google-apps-script-github/bmjcibkkmbmabejialhgnnmhpmdmijij)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating/bmjcibkkmbmabejialhgnnmhpmdmijij.svg)](https://chrome.google.com/webstore/detail/google-apps-script-github/bmjcibkkmbmabejialhgnnmhpmdmijij)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/rating-count/bmjcibkkmbmabejialhgnnmhpmdmijij.svg)](https://chrome.google.com/webstore/detail/google-apps-script-github/bmjcibkkmbmabejialhgnnmhpmdmijij)
+
 Chrome-extension for manage lambda inline code with github/github enterprise.
 
 #Install
@@ -16,13 +21,13 @@ Actually, this is not a login action, but to create the `access token` which wil
 >Note: the access token will be stored in `chrome.storage.sync`(password will not be stored), if you take this as a security hole, pleast **DO NOT** use this extension.
 
 ##Bind
-After login, you can bind your lambda function with Github repo and branch, or create a new one.
+After login, you can bind your lambda function with Github repo and branch, or create a new one. and decide which file to sync.
 ![alt login](http://gdurl.com/lnc1)
 
 ##Manage
 Manage your code with the similar `Push` and `Pull`.
 
-**The code will sync to Github's repo, with a file named `index.js`(nodejs) or `index.py`(python) under the root path.**
+**The code will sync to Github's repo, with a default file named `index.js`(nodejs) or `index.py`(python) under the root path.**
 
 - `Pull` only works for lambda's `$LATEST` version, since published version or alias is readonly.
 - `Push` will commit your current shown code(work for any qualifier) to the binding repo/branch.

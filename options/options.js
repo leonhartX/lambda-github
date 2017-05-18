@@ -5,7 +5,7 @@ $(() => {
    $('.login-container').animate({height: "toggle", opacity: "toggle"}, "slow");
   });
   $('#login').click((e) => {
-    addCredj(getGithubParam());
+    addCred(getGithubParam());
   });
   $('#ghe-login').click((e) => {
     addCred(getGHEParam());

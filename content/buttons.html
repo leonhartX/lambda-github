@@ -1,43 +1,93 @@
-<span class="github">
-  <div class="awsmob-dropdown">
-    <span>
-      <awsui-button>
-        <button id="github-bind-repo" class="github-button awsui-button awsui-button-size-normal awsui-button-variant-normal awsui-hover-child-icons" type="submit">Bind Repository<span class="github-caret awsui-button-icon awsui-button-icon-right awsui-icon caret-down"></span></button>
+<div class="awsui-util-f-r awsui-util-mt-xs">
+  <awsui-button-dropdown class="github" initialized="true">
+    <div class="awsui-button-dropdown-container">
+      <awsui-button initialized="true">
+        <button id="github-bind-repo" class="github-button awsui-button awsui-button-variant-normal awsui-hover-child-icons" type="submit" override-focus="true">
+          <span awsui-button-region="text">
+            <span>
+              <span id="github-bind-repo-text">Bind Repository</span>
+            </span>
+          </span>
+          <awsui-icon class="awsui-button-icon awsui-button-icon-right" initialized="true">
+            <span class="awsui-icon awsui-icon-size-normal awsui-icon-variant-normal">
+              <svg alt="caret-down-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <polygon class="filled stroke-linejoin-round" points="4 5 12 5 8 11 4 5"></polygon>
+              </svg>
+            </span>
+          </awsui-icon>
+        </button>
       </awsui-button>
-    </span>
-    <ul id="github-repos" class="awsmob-dropdown-menu github-repo-dropdown" style="display: none; overflow-y: auto; max-height: 200px">
-    </ul>
-  </div>
-</span>
-<span class="github">
-  <div class="awsmob-dropdown">
-    <span>
-      <awsui-button>
-        <button id="github-bind-branch" class="github-button awsui-button awsui-button-size-normal awsui-button-variant-normal awsui-hover-child-icons" type="submit">Branch:</button>
+      <div class="awsui-button-dropdown github-repo-dropdown" style="display:none; min-width: 113px; max-width: 277.688px;">
+        <div class="awsui-button-dropdown-content">
+          <ul id="github-repos" class="awsui-button-dropdown-items github-repo-dropdown" style="display: none; overflow-y: auto; max-height: 200px">
+          </ul>
+        </div>
+      </div>
+    </div>
+  </awsui-button-dropdown>
+  <awsui-button-dropdown class="github" initialized="true">
+    <div class="awsui-button-dropdown-container">
+      <awsui-button initialized="true">
+        <button id="github-bind-branch" class="github-button awsui-button awsui-button-variant-normal awsui-hover-child-icons" type="submit" override-focus="true">
+          <span awsui-button-region="text">
+            <span>
+              <span id="github-bind-branch-text">Branch:</span>
+            </span>
+          </span>
+          <awsui-icon class="awsui-button-icon awsui-button-icon-right" initialized="true">
+            <span class="awsui-icon awsui-icon-size-normal awsui-icon-variant-normal">
+              <svg alt="caret-down-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <polygon class="filled stroke-linejoin-round" points="4 5 12 5 8 11 4 5"></polygon>
+              </svg>
+            </span>
+          </awsui-icon>
+        </button>
       </awsui-button>
-    </span>
-    <ul id="github-branches" class="awsmob-dropdown-menu github-branch-dropdown" style="display: none; overflow-y: auto; max-height: 200px">
-    </ul>
-  </div>
-</span>
-<span class="github">
-  <div class="awsmob-dropdown">
-    <span>
-      <awsui-button>
-        <button id="github-bind-file" class="github-button awsui-button awsui-button-size-normal awsui-button-variant-normal awsui-hover-child-icons" type="submit">File:</button>
+      <div class="awsui-button-dropdown github-branch-dropdown" style="display:none; min-width: 113px; max-width: 277.688px;">
+        <div class="awsui-button-dropdown-content">
+          <ul id="github-branches" class="awsui-button-dropdown-items github-branch-dropdown" style="display: none; overflow-y: auto; max-height: 200px">
+          </ul>
+        </div>
+      </div>
+    </div>
+  </awsui-button-dropdown>
+  <awsui-button-dropdown class="github" initialized="true">
+    <div class="awsui-button-dropdown-container">
+      <awsui-button initialized="true">
+        <button id="github-bind-file" class="github-button awsui-button awsui-button-variant-normal awsui-hover-child-icons" type="submit" override-focus="true">
+          <span awsui-button-region="text">
+            <span>
+              <span id="github-bind-file-text">File:</span>
+            </span>
+          </span>
+          <awsui-icon class="awsui-button-icon awsui-button-icon-right" initialized="true">
+            <span class="awsui-icon awsui-icon-size-normal awsui-icon-variant-normal">
+              <svg alt="caret-down-filled" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                <polygon class="filled stroke-linejoin-round" points="4 5 12 5 8 11 4 5"></polygon>
+              </svg>
+            </span>
+          </awsui-icon>
+        </button>
       </awsui-button>
-    </span>
-    <ul id="github-files" class="awsmob-dropdown-menu github-file-dropdown" style="display: none; overflow-y: auto; max-height: 200px">
-    </ul>
-  </div>
-</span>
-<span class="github">
-  <awsui-button>
-    <button id="github-pull" class="awsui-button awsui-button-size-normal awsui-button-variant-primary awsui-hover-child-icons" type="submit">Pull</button>
+      <div class="awsui-button-dropdown github-file-dropdown" style="display:none; min-width: 113px; max-width: 277.688px;">
+        <div class="awsui-button-dropdown-content">
+          <ul id="github-files" class="awsui-button-dropdown-items github-file-dropdown" style="display: none; overflow-y: auto; max-height: 200px">
+          </ul>
+        </div>
+      </div>
+    </div>
+  </awsui-button-dropdown>
+
+  <awsui-button class="github" initialized="true">
+    <button id="github-pull" class="awsui-button awsui-button-variant-primary awsui-hover-child-icons" type="submit" override-focus="true">
+      <span awsui-button-region="text">Pull</span>
+    </button>
   </awsui-button>
-</span>
-<span class="github">
-  <awsui-button>
-    <button id="github-push" class="awsui-button awsui-button-size-normal awsui-button-variant-primary awsui-hover-child-icons" type="submit">Push</button>
+
+  <awsui-button class="github" initialized="true">
+    <button id="github-push" class="awsui-button awsui-button-variant-primary awsui-hover-child-icons" type="submit" override-focus="true">
+      <span awsui-button-region="text">Push</span>
+    </button>
   </awsui-button>
-</span>
+
+</div>

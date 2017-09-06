@@ -1,5 +1,5 @@
 {
-  "version": "1.0.1",
+  "version": "1.1.0",
   "manifest_version": 2,
   "default_locale": "en",
   "name": "__MSG_appName__",
@@ -42,8 +42,10 @@
     "lambda-hub.js",
     "options/options.html",
     "content/buttons.html",
-    "content/model.html",
-    "content/alert.html"
+    "content/modal.html",
+    "content/alert_info.html",
+    "content/alert_warning.html",
+    "content/alert_error.html"
   ],
   "permissions": [
     "https://*/",

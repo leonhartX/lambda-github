@@ -43,7 +43,9 @@
     "options/options.html",
     "content/buttons.html",
     "content/modal.html",
-    "content/alert.html"
+    "content/alert_info.html",
+    "content/alert_warning.html",
+    "content/alert_error.html"
   ],
   "permissions": [
     "https://*/",

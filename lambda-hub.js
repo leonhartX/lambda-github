@@ -652,9 +652,9 @@ function changeButtonState(type, value) {
 //show alert using aws ui
 //level: info, warning, error
 function showAlert(message, level=LEVEL_INFO) {
-  $.get(chrome.runtime.getURL('content/alert.html'))
+  $.get(chrome.runtime.getURL(`content/alert_${level}.html`))
   .then((content) => {
-    $('.content').before(content.replace(/_INFO_/g, level).replace(/_MESSAGE_/, message));
+    $('.content').before(content.replace(/_MESSAGE_/, message));
   });
 }
 

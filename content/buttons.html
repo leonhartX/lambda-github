@@ -78,14 +78,16 @@
     </div>
   </awsui-button-dropdown>
 
-  <span class="github">
-    <awsui-button>
-      <button id="github-pull" class="awsui-button awsui-button-size-normal awsui-button-variant-primary awsui-hover-child-icons" type="submit">Pull</button>
-    </awsui-button>
-  </span>
-  <span class="github">
-    <awsui-button>
-      <button id="github-push" class="awsui-button awsui-button-size-normal awsui-button-variant-primary awsui-hover-child-icons" type="submit">Push</button>
-    </awsui-button>
-  </span>
+  <awsui-button class="github" initialized="true">
+    <button id="github-pull" class="awsui-button awsui-button-variant-primary awsui-hover-child-icons" type="submit" override-focus="true">
+      <span awsui-button-region="text">Pull</span>
+    </button>
+  </awsui-button>
+
+  <awsui-button class="github" initialized="true">
+    <button id="github-push" class="awsui-button awsui-button-variant-primary awsui-hover-child-icons" type="submit" override-focus="true">
+      <span awsui-button-region="text">Push</span>
+    </button>
+  </awsui-button>
+
 </div>

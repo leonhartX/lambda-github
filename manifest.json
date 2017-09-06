@@ -42,7 +42,7 @@
     "lambda-hub.js",
     "options/options.html",
     "content/buttons.html",
-    "content/model.html",
+    "content/modal.html",
     "content/alert.html"
   ],
   "permissions": [

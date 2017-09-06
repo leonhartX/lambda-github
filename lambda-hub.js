@@ -48,17 +48,17 @@ $(() => {
     $(document).on('input propertychange', `#new-${type}-name`, (event) => {
       changeButtonState(type, event.target.value);
     });
-    $(document).on('click', `.github-${type}-model-dismiss`, (event) => {
-      changeModelState(type, false);
+    $(document).on('click', `.github-${type}-modal-dismiss`, (event) => {
+      changeModalState(type, false);
     });
     $(document).on('click', `#github-create-${type}`, (event) => {
-      changeModelState(type, false);
+      changeModalState(type, false);
       CREATE_FUNC[type]();
     });
   })
 
-  $(document).on('click', '.github-diff-model-dismiss', () => {
-    changeModelState('diff', false);
+  $(document).on('click', '.github-diff-modal-dismiss', () => {
+    changeModalState('diff', false);
   })
 
   $(document).on('click', '.github-alert-dismiss', () => {
@@ -166,7 +166,7 @@ function showDiff(type, handler) {
       showAlert("There is nothing to pull", LEVEL_WARN);
       return;
     }
-    //setting the diff model
+    //setting the diff modal
     const oldCode = type === "Push" ? code.github : code.lambda;
     const newCode = type === "Push" ? code.lambda : code.github;
     const diff = JsDiff.createPatch(context.file, oldCode, newCode);
@@ -198,10 +198,10 @@ function showDiff(type, handler) {
       }
     }
     $('#github-diff-handler').text(type).off().click(() => {
-      changeModelState('diff', false);
+      changeModalState('diff', false);
       handler(code);
     });
-    changeModelState('diff', true);
+    changeModalState('diff', true);
   })
   .catch((err) => {
     if (!context.repo || !context.branch) {
@@ -222,7 +222,7 @@ function githubPush(data) {
     encoding: "utf-8"
   };
   Promise.all([
-     $.ajax({
+    $.ajax({
       url: `${baseUrl}/repos/${context.repo.fullName}/git/blobs`,
       headers: {
         "Authorization": `token ${accessToken}`
@@ -433,7 +433,7 @@ function githubCreateFile() {
 
 function showCreateContent(type) {
   $(`.github-${type}-dropdown`).hide();
-  changeModelState(type, true);
+  changeModalState(type, true);
 }
 
 function initContext() {
@@ -533,14 +533,14 @@ function initPageContent() {
     throw new Error("nothing to do");
   }
 
-  $.get(chrome.runtime.getURL('content/model.html'))
+  $.get(chrome.runtime.getURL('content/modal.html'))
   .then((content) => {
     $('#main').siblings().last().after(content);
   });
 
   return $.get(chrome.runtime.getURL('content/buttons.html'))
   .then((content) => {
-    return div.after(content);
+    return div.css('clear', 'right').before(content);
   });
 }
 
@@ -633,17 +633,11 @@ function updateFile() {
   })
 }
 
-function changeModelState(type, toShow) {
+function changeModalState(type, toShow) {
   const index = toShow ? 0 : -1;
-  const fromClass = toShow ? 'hidden' : 'fadeIn';
-  const trasnferClass = toShow ? 'fadeIn' : 'fadeOut';
-  const toClass = toShow ? 'showing' : 'hidden';
-  $(`.github-${type}-model`).removeClass(`awsui-modal-__state-${fromClass}`).addClass(`awsui-modal-__state-${trasnferClass}`);
-  setTimeout(() => {
-    $(`.github-${type}-model`).removeClass(`awsui-modal-__state-${trasnferClass}`).addClass(`awsui-modal-__state-${toClass}`);
-  },
-  1000
-  );
+  const fromClass = toShow ? 'hidden' : 'show';
+  const toClass = toShow ? 'show' : 'hidden';
+  $(`.github-${type}-modal`).removeClass(`awsui-modal-__state-${fromClass}`).addClass(`awsui-modal-__state-${toClass}`);
   $(`.github-${type}-modal-dialog`).attr('tabindex', index);
 }
 

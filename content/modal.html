@@ -1,0 +1,363 @@
+<awsui-modal id="github-repo-modal">
+  <div class="awsui-modal-tabtrap" tabindex="-1"></div>
+  <div class="github-repo-modal awsui-modal-__state-hidden awsui-modal-container awsui-modal-expandtofit">
+    <div class="github-repo-modal-dialog awsui-modal-dialog awsui-modal-expandtofit awsui-modal-size-large" tabindex="-1">
+      <div class="awsui-modal-content awsui-util-container">
+        <div class="awsui-modal-header awsui-util-container-header">
+          <div class="awsui-modal-title">
+            <div awsui-modal-region="header">Create a new repository</div>
+          </div>
+          <awsui-button class="github-repo-modal-dismiss awsui-modal-dismiss-control" initialized="true">
+            <button class="awsui-button awsui-button-no-text awsui-button-variant-icon awsui-hover-child-icons" type="button" override-focus="true">
+              <awsui-icon class="awsui-button-icon awsui-button-icon-left" initialized="true">
+                <span class="awsui-icon awsui-icon-size-normal awsui-icon-variant-normal">
+                  <svg alt="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                    <line x1="2" y1="2" x2="14" y2="14"></line>
+                    <line x1="14" y1="2" x2="2" y2="14"></line>
+                  </svg>
+                </span>
+              </awsui-icon>
+            </button>
+          </awsui-button>
+        </div>
+        <div class="awsui-modal-body awsui-modal-expandtofit">
+          <div awsui-modal-region="content">
+            <span>
+              <div data-reactroot="">
+                <p>Create a new repository</p>
+                <awsui-form-field initialized="true">
+                  <div class="awsui-form-field">
+                    <label class="awsui-form-field-label" for="new-repo-name" awsui-form-field-region="label">
+                      <span>
+                        <span data-reactroot="">
+                          <span>Repository name</span>
+                        </span>
+                      </span>
+                    </label>
+                    <div class="awsui-grid awsui-form-field-controls">
+                      <div class="awsui-row">
+                        <div class="awsui-form-field-control col-9 col-xxs-12" awsui-form-field-region="control">
+                          <span>
+                            <awsui-input data-reactroot="" initialized="true">
+                              <span>
+                                <input autocomplete="on" class="awsui-input awsui-input-type-text" type="text" id="new-repo-name">
+                              </span>
+                            </awsui-input>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="awsui-form-field">
+                    <label class="awsui-form-field-label" for="new-repo-desc" awsui-form-field-region="label">
+                      <span>
+                        <span data-reactroot="">
+                          <span>Description</span>
+                        </span>
+                      </span>
+                    </label>
+                    <div class="awsui-grid awsui-form-field-controls">
+                      <div class="awsui-row">
+                        <div class="awsui-form-field-control col-9 col-xxs-12" awsui-form-field-region="control">
+                          <span>
+                            <awsui-input data-reactroot="" initialized="true">
+                              <span>
+                                <input autocomplete="on" class="awsui-input awsui-input-type-text" type="text" id="new-repo-desc">
+                              </span>
+                            </awsui-input>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </awsui-form-field>
+              </div>
+            </span>
+          </div>
+        </div>
+        <div class="awsui-modal-footer awsui-util-container-footer" awsui-modal-region="footer">
+          <span>
+            <span data-reactroot="">
+              <awsui-button class="awsui-util-f-r" initialized="true">
+                <button id="github-create-repo" class="awsui-button awsui-button-variant-primary awsui-hover-child-icons" type="submit" override-focus="true">
+                  <span awsui-button-region="text">Create</span>
+                </button>
+              </awsui-button>
+              <awsui-button class="awsui-util-f-r" initialized="true">
+                <button class="github-repo-modal-dismiss awsui-button awsui-button-variant-link awsui-hover-child-icons" type="submit" override-focus="true">
+                  <span awsui-button-region="text">Cancel</span>
+                </button>
+              </awsui-button>
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<awsui-modal id="github-branch-modal">
+  <div class="awsui-modal-tabtrap" tabindex="-1"></div>
+  <div class="github-branch-modal awsui-modal-__state-hidden awsui-modal-container awsui-modal-expandtofit">
+    <div class="github-branch-modal-dialog awsui-modal-dialog awsui-modal-expandtofit awsui-modal-size-large" tabindex="-1">
+      <div class="awsui-modal-content awsui-util-container">
+        <div class="awsui-modal-header awsui-util-container-header">
+          <div class="awsui-modal-title">
+            <div awsui-modal-region="header">Create a new branch</div>
+          </div>
+          <awsui-button class="github-branch-modal-dismiss awsui-modal-dismiss-control" initialized="true">
+            <button class="awsui-button awsui-button-no-text awsui-button-variant-icon awsui-hover-child-icons" type="button" override-focus="true">
+              <awsui-icon class="awsui-button-icon awsui-button-icon-left" initialized="true">
+                <span class="awsui-icon awsui-icon-size-normal awsui-icon-variant-normal">
+                  <svg alt="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                    <line x1="2" y1="2" x2="14" y2="14"></line>
+                    <line x1="14" y1="2" x2="2" y2="14"></line>
+                  </svg>
+                </span>
+              </awsui-icon>
+            </button>
+          </awsui-button>
+        </div>
+        <div class="awsui-modal-body awsui-modal-expandtofit">
+          <div awsui-modal-region="content">
+            <span>
+              <div data-reactroot="">
+                <p>Create a new branch</p>
+                <awsui-form-field initialized="true">
+                  <div class="awsui-form-field">
+                    <label class="awsui-form-field-label" for="new-branch-name" awsui-form-field-region="label">
+                      <span>
+                        <span data-reactroot="">
+                          <span>Branch name</span>
+                        </span>
+                      </span>
+                    </label>
+                    <div class="awsui-grid awsui-form-field-controls">
+                      <div class="awsui-row">
+                        <div class="awsui-form-field-control col-9 col-xxs-12" awsui-form-field-region="control">
+                          <span>
+                            <awsui-input data-reactroot="" initialized="true">
+                              <span>
+                                <input autocomplete="on" class="awsui-input awsui-input-type-text" type="text" id="new-branch-name">
+                              </span>
+                            </awsui-input>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </awsui-form-field>
+              </div>
+            </span>
+          </div>
+        </div>
+        <div class="awsui-modal-footer awsui-util-container-footer" awsui-modal-region="footer">
+          <span>
+            <span data-reactroot="">
+              <awsui-button class="awsui-util-f-r" initialized="true">
+                <button id="github-create-branch" class="awsui-button awsui-button-variant-primary awsui-hover-child-icons" type="submit" override-focus="true">
+                  <span awsui-button-region="text">Create</span>
+                </button>
+              </awsui-button>
+              <awsui-button class="awsui-util-f-r" initialized="true">
+                <button class="github-branch-modal-dismiss awsui-button awsui-button-variant-link awsui-hover-child-icons" type="submit" override-focus="true">
+                  <span awsui-button-region="text">Cancel</span>
+                </button>
+              </awsui-button>
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<awsui-modal id="github-file-modal">
+  <div class="awsui-modal-tabtrap" tabindex="-1"></div>
+  <div class="github-file-modal awsui-modal-__state-hidden awsui-modal-container awsui-modal-expandtofit">
+    <div class="github-file-modal-dialog awsui-modal-dialog awsui-modal-expandtofit awsui-modal-size-large" tabindex="-1">
+      <div class="awsui-modal-content awsui-util-container">
+        <div class="awsui-modal-header awsui-util-container-header">
+          <div class="awsui-modal-title">
+            <div awsui-modal-region="header">Create a new file</div>
+          </div>
+          <awsui-button class="github-file-modal-dismiss awsui-modal-dismiss-control" initialized="true">
+            <button class="awsui-button awsui-button-no-text awsui-button-variant-icon awsui-hover-child-icons" type="button" override-focus="true">
+              <awsui-icon class="awsui-button-icon awsui-button-icon-left" initialized="true">
+                <span class="awsui-icon awsui-icon-size-normal awsui-icon-variant-normal">
+                  <svg alt="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                    <line x1="2" y1="2" x2="14" y2="14"></line>
+                    <line x1="14" y1="2" x2="2" y2="14"></line>
+                  </svg>
+                </span>
+              </awsui-icon>
+            </button>
+          </awsui-button>
+        </div>
+        <div class="awsui-modal-body awsui-modal-expandtofit">
+          <div awsui-modal-region="content">
+            <span>
+              <div data-reactroot="">
+                <p>Create a new file</p>
+                <awsui-form-field initialized="true">
+                  <div class="awsui-form-field">
+                    <label class="awsui-form-field-label" for="new-file-name" awsui-form-field-region="label">
+                      <span>
+                        <span data-reactroot="">
+                          <span>File name</span>
+                        </span>
+                      </span>
+                    </label>
+                    <div class="awsui-grid awsui-form-field-controls">
+                      <div class="awsui-row">
+                        <div class="awsui-form-field-control col-9 col-xxs-12" awsui-form-field-region="control">
+                          <span>
+                            <awsui-input data-reactroot="" initialized="true">
+                              <span>
+                                <input autocomplete="on" class="awsui-input awsui-input-type-text" type="text" id="new-file-name">
+                              </span>
+                            </awsui-input>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </awsui-form-field>
+              </div>
+            </span>
+          </div>
+        </div>
+        <div class="awsui-modal-footer awsui-util-container-footer" awsui-modal-region="footer">
+          <span>
+            <span data-reactroot="">
+              <awsui-button class="awsui-util-f-r" initialized="true">
+                <button id="github-create-file" class="awsui-button awsui-button-variant-primary awsui-hover-child-icons" type="submit" override-focus="true">
+                  <span awsui-button-region="text">Create</span>
+                </button>
+              </awsui-button>
+              <awsui-button class="awsui-util-f-r" initialized="true">
+                <button class="github-file-modal-dismiss awsui-button awsui-button-variant-link awsui-hover-child-icons" type="submit" override-focus="true">
+                  <span awsui-button-region="text">Cancel</span>
+                </button>
+              </awsui-button>
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<awsui-modal id="github-diff-modal">
+  <div class="awsui-modal-tabtrap" tabindex="-1"></div>
+  <div class="github-diff-modal awsui-modal-__state-hidden awsui-modal-container awsui-modal-expandtofit">
+    <div class="github-diff-modal-dialog awsui-modal-dialog awsui-modal-expandtofit awsui-modal-size-large" tabindex="-1">
+      <div class="awsui-modal-content awsui-util-container">
+        <div class="awsui-modal-header awsui-util-container-header">
+          <div class="awsui-modal-title">
+            <div awsui-modal-region="header">Diff between lambda and github</div>
+          </div>
+          <awsui-button class="github-diff-modal-dismiss awsui-modal-dismiss-control" initialized="true">
+            <button class="awsui-button awsui-button-no-text awsui-button-variant-icon awsui-hover-child-icons" type="button" override-focus="true">
+              <awsui-icon class="awsui-button-icon awsui-button-icon-left" initialized="true">
+                <span class="awsui-icon awsui-icon-size-normal awsui-icon-variant-normal">
+                  <svg alt="close" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                    <line x1="2" y1="2" x2="14" y2="14"></line>
+                    <line x1="14" y1="2" x2="2" y2="14"></line>
+                  </svg>
+                </span>
+              </awsui-icon>
+            </button>
+          </awsui-button>
+        </div>
+        <div class="awsui-modal-body awsui-modal-expandtofit">
+          <div awsui-modal-region="content">
+            <span>
+              <div data-reactroot="">
+                <div class="github-diff"></div>
+                <awsui-form-field initialized="true" class="github-comment">
+                  <div class="awsui-form-field">
+                    <label class="awsui-form-field-label" for="commit-comment" awsui-form-field-region="label">
+                      <span>
+                        <span data-reactroot="">
+                          <span>Commit comment</span>
+                        </span>
+                      </span>
+                    </label>
+                    <div class="awsui-grid awsui-form-field-controls">
+                      <div class="awsui-row">
+                        <div class="awsui-form-field-control col-9 col-xxs-12" awsui-form-field-region="control">
+                          <span>
+                            <awsui-input data-reactroot="" initialized="true">
+                              <span>
+                                <input autocomplete="on" class="awsui-input awsui-input-type-text" type="text" id="commit-comment">
+                              </span>
+                            </awsui-input>
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </awsui-form-field>
+              </div>
+            </span>
+          </div>
+        </div>
+        <div class="awsui-modal-footer awsui-util-container-footer" awsui-modal-region="footer">
+          <span>
+            <span data-reactroot="">
+              <awsui-button class="awsui-util-f-r" initialized="true">
+                <button id="github-diff-handler" class="awsui-button awsui-button-variant-primary awsui-hover-child-icons" type="submit" override-focus="true">
+                </button>
+              </awsui-button>
+              <awsui-button class="awsui-util-f-r" initialized="true">
+                <button class="github-diff-modal-dismiss awsui-button awsui-button-variant-link awsui-hover-child-icons" type="submit" override-focus="true">
+                  <span awsui-button-region="text">Cancel</span>
+                </button>
+              </awsui-button>
+            </span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- <awsui-modal id="github-diff-modal">
+  <div class="awsui-modal-tabtrap" tabindex="-1"></div>
+  <div class="github-diff-model awsui-modal-__state-hidden awsui-modal-container">
+    <div class="awsui-modal-dialog awsui-modal-size-large" tabindex="-1">
+      <div class="awsui-modal-content">
+        <div class="awsui-modal-header">
+          <button class="github-diff-model-dismiss awsui-modal-dismiss-control awsui-button-as-link awsui-icon times"></button>
+          Diff between lambda and github
+        </div>
+        <div class="awsui-modal-body">
+          <div class="github-diff">
+          </div>
+          <div class="github-comment awsui-control-group-inside">
+            <label class="awsui-control-group-label" for="awsui-textfield-1">Commit Comment</label>
+            <div class="awsui-control-group-controls">
+              <div class="awsui-control-group-control" region-container="control">
+                <span><awsui-textfield><input type="text" id="commit-comment" class="awsui-textfield awsui-textfield-type-text"></awsui-textfield></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="awsui-modal-footer">
+          <div region-container="footer">
+            <span>
+              <awsui-button class="awsui-util-f-r">
+                <button id="github-diff-handler" class="awsui-button awsui-button-size-normal awsui-button-variant-primary awsui-hover-child-icons" type="submit"></button>
+              </awsui-button>
+              <awsui-button class="awsui-util-f-r">
+                <button class="github-diff-model-dismiss awsui-button awsui-button-size-normal awsui-button-variant-link awsui-hover-child-icons" type="submit">Cancel</button>
+              </awsui-button>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="github-diff-model awsui-modal-__state-hidden awsui-modal-overlay"></div>
+  <div class="awsui-modal-tabtrap" tabindex="-1"></div>
+</awsui-modal> -->
+
+<iframe style="visibility: hidden; width: 0px; height: 0px; border-width: 0px;" id="script_wrapper"></iframe>

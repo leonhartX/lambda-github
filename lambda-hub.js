@@ -545,17 +545,15 @@ function initPageContent() {
 }
 
 function initLoginContent() {
-  const div = $('.awsmob-button-group');
+  const div = $('.awsui-util-f-r.awsui-util-mt-xs');
   if($('.github').length !== 0 || div.length === 0 || div.children().length <= 2) {
     return;
   }
   const htmlContent = '\
-    <span class="github">\
       <awsui-button>\
-        <button id="github-login" class="awsui-button awsui-button-size-normal awsui-button-variant-normal awsui-hover-child-icons" type="submit">Login to Github\
+        <button id="github-login" class="awsui-button awsui-button-variant-primary awsui-hover-child-icons" type="submit">Login to Github\
         </button>\
-      </awsui-button>\
-    </span>';
+      </awsui-button>';
   div.children().last().after(htmlContent);
 }
 

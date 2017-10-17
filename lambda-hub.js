@@ -635,7 +635,7 @@ function changeModalState(type, toShow) {
   const index = toShow ? 0 : -1;
   const fromClass = toShow ? 'hidden' : 'show';
   const toClass = toShow ? 'show' : 'hidden';
-  $(`.github-${type}-modal`).removeClass(`awsui-modal-__state-${fromClass}`).addClass(`awsui-modal-__state-${toClass}`);
+  $(`.github-${type}-modal`).removeClass(`awsui-modal-${fromClass}`).addClass(`awsui-modal-${toClass}`);
   $(`.github-${type}-modal-dialog`).attr('tabindex', index);
 }
 

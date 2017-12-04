@@ -6,6 +6,8 @@
 
 Chrome-extension for manage lambda inline code with github/github enterprise.
 
+#NOTE: Currently does not work with the new lambda UI
+
 #Install
 Install this extension from [chrome web store](https://chrome.google.com/webstore/detail/bmjcibkkmbmabejialhgnnmhpmdmijij).
 
